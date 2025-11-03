@@ -1,0 +1,19 @@
+//
+//  GetTokenService.swift
+//  SaleAssistant
+//
+//  Created by Matt on 03/11/2025.
+//
+
+public protocol GetTokenService: AnyObject {
+    func getToken() async throws -> String
+}
+
+public protocol TokenSaver: AnyObject {
+     func save(token: AccessToken) async -> Result<Void, Swift.Error>
+}
+
+public protocol TokenLoader: AnyObject {
+    func load() async -> Result<AccessToken, Swift.Error>
+}
+
