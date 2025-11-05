@@ -1,5 +1,5 @@
 //
-//  AuthorisationService.swift
+//  AuthenticationService.swift
 //  SaleAssistant
 //
 //  Created by Matt on 03/11/2025.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-final class AuthorisationService: RefreshTokenRetriever {
+final class AuthenticationService: RefreshTokenRetriever {
     
     public enum Error: Swift.Error, Equatable {
         case connectivity
@@ -17,46 +17,77 @@ final class AuthorisationService: RefreshTokenRetriever {
     private let url: URL
     private let client: HTTPClient
     private let decoder: JSONDecoder
-
+    private let tokenSaver: TokenSaver
+    
     public init(url: URL,
                 client: HTTPClient,
-                decoder: JSONDecoder = JSONDecoder()) {
+                decoder: JSONDecoder = JSONDecoder(),
+                tokenSaver: TokenSaver) {
         self.url = url
         self.client = client
         self.decoder = decoder
+        self.tokenSaver = tokenSaver
     }
     
     func refreshToken() async throws -> String {
+        // TODO: we need credentials for the refresh tokens, we could store password and name or ask the user to provide the credentials otherwise we cant
         let accessToken = try await authorize(with: Credentials(login: "", password: ""))
         return accessToken.value
     }
-
     
     func authorize(with credentials: Credentials) async throws -> AccessToken {
-        var authRequest = URLRequest(url: url)
-        authRequest.setValue("Basic \(base64Encoded(credentials))", forHTTPHeaderField: "Authorization")
+        let request = try makeAuthorizationRequest(with: credentials)
+        let payload = try await send(request: request)
+        let accessToken = try decodeAccessToken(from: payload.data)
+        return try await persist(token: accessToken)
+    }
+    
+    private func makeAuthorizationRequest(with credentials: Credentials) throws -> URLRequest {
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        let payload: (data: Data, response: HTTPURLResponse)
-
+        let body = [
+            "username": credentials.login,
+            "password": credentials.password
+        ]
+        
         do {
-            payload = try await client.perform(request: authRequest)
+            request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        } catch {
+            throw Error.invalidData
+        }
+        
+        return request
+    }
+    
+    private func send(request: URLRequest) async throws -> (data: Data, response: HTTPURLResponse) {
+        do {
+            let payload = try await client.perform(request: request)
+            guard payload.response.statusCode == 200 else {
+                throw Error.invalidData
+            }
+            return payload
         } catch {
             throw Error.connectivity
         }
-
-        guard payload.response.statusCode == 200 else {
-            throw Error.invalidData
-        }
-
+    }
+    
+    private func decodeAccessToken(from data: Data) throws -> AccessToken {
         do {
-            let accessToken = try decoder.decode(AccessToken.self, from: payload.data)
-            return accessToken
+            // TODO: double check what actually we get from the data, i dont think it is really an accessToken object just string probably
+            return try decoder.decode(AccessToken.self, from: data)
         } catch {
             throw Error.invalidData
         }
     }
-
-    private func base64Encoded(_ credentials: Credentials) -> String {
-        Data("\(credentials.login):\(credentials.password)".utf8).base64EncodedString()
+    
+    private func persist(token: AccessToken) async throws -> AccessToken {
+        switch await tokenSaver.save(token: token) {
+        case .success:
+            return token
+        case .failure(let error):
+            throw error
+        }
     }
 }

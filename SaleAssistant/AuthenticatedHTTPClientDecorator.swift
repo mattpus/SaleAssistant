@@ -17,6 +17,9 @@ final class AuthenticatedHTTPClientDecorator: HTTPClient {
     }
     
     func perform(request: URLRequest) async throws -> (data: Data, response: HTTPURLResponse) {
-       try await docoratee.perform(request: request)
+        let token = try await tokenProvider.getToken()
+        var authenticatedRequest = request
+        authenticatedRequest.setValue(token, forHTTPHeaderField: "Authorization")
+        return try await docoratee.perform(request: authenticatedRequest)
     }
 }

@@ -48,22 +48,18 @@ public final class ProductsService {
 }
 
 public struct Product {
+    let id: String
     let name: String
-    let sales: Int
 }
 
 private struct ProductDTO: Decodable {
-    struct Name: Decodable {
-        let common: String
-    }
-
-    let name: Name
-    let sales: Int
+    let id: String
+    let name: String
 
     var model: Product {
         Product(
-            name: name.common,
-            sales: sales
+            id: id,
+            name: name
         )
     }
 }

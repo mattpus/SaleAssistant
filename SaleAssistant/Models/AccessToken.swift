@@ -7,7 +7,7 @@
 
 import Foundation 
 
-public struct AccessToken: Decodable {
+public struct AccessToken: Decodable, Equatable {
     let value: String
     let expirationDate: Date
     var isValid: Bool {

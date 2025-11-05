@@ -30,6 +30,7 @@ func anyHTTPResponse(statusCode: Int = 200) -> HTTPURLResponse {
 
 final class HTTPClientSpy: HTTPClient {
     private(set) var requestedURLs: [URL] = []
+    private(set) var requests: [URLRequest] = []
     private var results: [URL: Result<(Data, HTTPURLResponse), Error>] = [:]
     private var defaultResult: Result<(Data, HTTPURLResponse), Error>?
 
@@ -44,6 +45,7 @@ final class HTTPClientSpy: HTTPClient {
     func perform(request: URLRequest) async throws -> (data: Data, response: HTTPURLResponse) {
         let url = request.url!
         requestedURLs.append(url)
+        requests.append(request)
 
         let result = results[url] ?? defaultResult
 
