@@ -9,39 +9,45 @@ import Combine
 import Foundation
 
 @MainActor
-final class ProductViewModel: ObservableObject {
-    struct Item: Equatable, Identifiable {
-        let id: String
-        let name: String
-        let salesCount: Int
+public final class ProductViewModel: ObservableObject {
+    public struct Item: Equatable, Identifiable {
+        public let id: String
+        public let name: String
+        public let salesCount: Int
+
+        public init(id: String, name: String, salesCount: Int) {
+            self.id = id
+            self.name = name
+            self.salesCount = salesCount
+        }
     }
 
-    @Published private(set) var isLoading = false
-    @Published private(set) var items: [Item] = []
-    @Published private(set) var error: Swift.Error?
-    @Published private(set) var sessionExpired = false
+    @Published public private(set) var isLoading = false
+    @Published public private(set) var items: [Item] = []
+    @Published public private(set) var error: Swift.Error?
+    @Published public private(set) var sessionExpired = false
 
     private let productsLoader: ProductsLoading
     private let salesLoader: SalesLoading
 
-    init(productsLoader: ProductsLoading,
-         salesLoader: SalesLoading) {
+    public init(productsLoader: ProductsLoading,
+                salesLoader: SalesLoading) {
         self.productsLoader = productsLoader
         self.salesLoader = salesLoader
     }
 
-    convenience init(productsURL: URL,
-                     salesURL: URL,
-                     client: HTTPClient,
-                     tokenProvider: TokenProvider,
-                     decoder: JSONDecoder = JSONDecoder()) {
+    public convenience init(productsURL: URL,
+                            salesURL: URL,
+                            client: HTTPClient,
+                            tokenProvider: TokenProvider,
+                            decoder: JSONDecoder = JSONDecoder()) {
         let authenticatedClient = AuthenticatedHTTPClientDecorator(docoratee: client, tokenProvider: tokenProvider)
         let productsService = ProductsService(url: productsURL, client: authenticatedClient, decoder: decoder)
         let salesService = SalesService(url: salesURL, client: authenticatedClient, decoder: decoder)
         self.init(productsLoader: productsService, salesLoader: salesService)
     }
 
-    func load() async {
+    public func load() async {
         isLoading = true
         error = nil
         sessionExpired = false

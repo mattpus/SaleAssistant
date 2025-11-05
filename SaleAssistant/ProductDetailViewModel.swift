@@ -9,53 +9,61 @@ import Combine
 import Foundation
 
 @MainActor
-final class ProductDetailViewModel: ObservableObject {
-    struct SaleItem: Identifiable, Equatable {
-        let id: String
-        let originalAmount: Decimal
-        let originalCurrency: String
-        let usdAmount: Decimal
-        let date: Date
+public final class ProductDetailViewModel: ObservableObject {
+    public struct SaleItem: Identifiable, Equatable {
+        public let id: String
+        public let originalAmount: Decimal
+        public let originalCurrency: String
+        public let usdAmount: Decimal
+        public let date: Date
+
+        public init(id: String, originalAmount: Decimal, originalCurrency: String, usdAmount: Decimal, date: Date) {
+            self.id = id
+            self.originalAmount = originalAmount
+            self.originalCurrency = originalCurrency
+            self.usdAmount = usdAmount
+            self.date = date
+        }
     }
 
-    enum ConversionError: Swift.Error, Equatable {
+    public enum ConversionError: Swift.Error, Equatable {
         case missingRate(currency: String)
     }
 
-    @Published private(set) var productName: String
-    @Published private(set) var isLoading = false
-    @Published private(set) var saleItems: [SaleItem] = []
-    @Published private(set) var salesCount: Int = 0
-    @Published private(set) var totalSalesUSD: Decimal = .zero
-    @Published private(set) var error: Swift.Error?
-    @Published private(set) var sessionExpired = false
+    @Published public private(set) var productName: String
+    @Published public private(set) var isLoading = false
+    @Published public private(set) var saleItems: [SaleItem] = []
+    @Published public private(set) var salesCount: Int = 0
+    @Published public private(set) var totalSalesUSD: Decimal = .zero
+    @Published public private(set) var error: Swift.Error?
+    @Published public private(set) var sessionExpired = false
 
     private let product: Product
     private let salesLoader: SalesLoading
     private let ratesLoader: RatesLoading
 
-    init(product: Product,
-         salesLoader: SalesLoading,
-         ratesLoader: RatesLoading) {
+    public init(product: Product,
+                salesLoader: SalesLoading,
+                ratesLoader: RatesLoading) {
         self.product = product
         self.salesLoader = salesLoader
         self.ratesLoader = ratesLoader
         self.productName = product.name
     }
 
-    convenience init(product: Product,
-                     salesURL: URL,
-                     ratesURL: URL,
-                     client: HTTPClient,
-                     tokenProvider: TokenProvider,
-                     decoder: JSONDecoder = JSONDecoder()) {
+    public convenience init(product: Product,
+                            salesURL: URL,
+                            ratesURL: URL,
+                            client: HTTPClient,
+                            tokenProvider: TokenProvider,
+                            decoder: JSONDecoder = JSONDecoder()) {
         let authenticatedClient = AuthenticatedHTTPClientDecorator(docoratee: client, tokenProvider: tokenProvider)
         let salesService = SalesService(url: salesURL, client: authenticatedClient, decoder: decoder)
-        let ratesService = RatesService(url: ratesURL, client: authenticatedClient, decoder: decoder)
+        let ratesService = RatesService(url: ratesURL, client: client, decoder: decoder)
         self.init(product: product, salesLoader: salesService, ratesLoader: ratesService)
     }
 
-    func load() async {
+    public func load() async {
         isLoading = true
         error = nil
         sessionExpired = false

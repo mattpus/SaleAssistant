@@ -7,18 +7,18 @@
 
 import Foundation
 
-class TokenService: TokenProvider {
+public final class TokenService: TokenProvider {
     private let tokenLoader: TokenLoader
     private let refreshTokenRetriever: RefreshTokenRetriever
-    
-    init(tokenLoader: TokenLoader, refreshTokenRetriever: RefreshTokenRetriever) {
+
+    public init(tokenLoader: TokenLoader, refreshTokenRetriever: RefreshTokenRetriever) {
         self.tokenLoader = tokenLoader
         self.refreshTokenRetriever = refreshTokenRetriever
     }
-    
-    func getToken() async throws -> String {
+
+    public func getToken() async throws -> String {
         let result = await tokenLoader.load()
-        
+
         switch result {
         case .success(let accessToken):
             guard accessToken.isValid else {

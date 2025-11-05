@@ -60,8 +60,7 @@ final class ProductDetailViewModelTests: XCTestCase {
             makeSale(productID: product.id, currency: "JPY", amount: 1000, daysAgo: 1)
         ]
         var rates = makeRatesDictionary()
-        rates.removeAll()
-        rates["USD"] = 1
+        rates.removeValue(forKey: "JPY")
         let (sut, _, _) = makeSUT(product: product,
                                   salesResult: .success(sales),
                                   ratesResult: .success(rates))

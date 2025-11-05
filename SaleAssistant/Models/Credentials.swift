@@ -5,7 +5,7 @@
 //  Created by Matt on 05/11/2025.
 //
 
-struct Credentials: Decodable {
+public struct Credentials: Decodable {
     let login: String
     let password: String
 }

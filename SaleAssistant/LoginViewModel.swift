@@ -9,20 +9,20 @@ import Combine
 import Foundation
 
 @MainActor
-final class LoginViewModel: ObservableObject {
-    @Published private(set) var isLoading = false
-    @Published private(set) var products: [Product] = []
-    @Published private(set) var error: Error?
+public final class LoginViewModel: ObservableObject {
+    @Published public private(set) var isLoading = false
+    @Published public private(set) var products: [Product] = []
+    @Published public private(set) var error: Error?
 
     private let authenticator: Authenticating
     private let productsLoader: ProductsLoading
 
-    init(authenticator: Authenticating, productsLoader: ProductsLoading) {
+    public init(authenticator: Authenticating, productsLoader: ProductsLoading) {
         self.authenticator = authenticator
         self.productsLoader = productsLoader
     }
 
-    func login(username: String, password: String) async {
+    public func login(username: String, password: String) async {
         isLoading = true
         error = nil
 

@@ -7,7 +7,7 @@
 
 import Foundation
 
-final class AuthenticationService: RefreshTokenRetriever, Authenticating {
+public final class AuthenticationService: RefreshTokenRetriever, Authenticating {
     
     public enum Error: Swift.Error, Equatable {
         case connectivity
@@ -29,13 +29,13 @@ final class AuthenticationService: RefreshTokenRetriever, Authenticating {
         self.tokenSaver = tokenSaver
     }
     
-    func refreshToken() async throws -> String {
+    public func refreshToken() async throws -> String {
         // TODO: we need credentials for the refresh tokens, we could store password and name or ask the user to provide the credentials otherwise we cant
         let accessToken = try await authenticate(with: Credentials(login: "", password: ""))
         return accessToken.value
     }
     
-    func authenticate(with credentials: Credentials) async throws -> AccessToken {
+    public func authenticate(with credentials: Credentials) async throws -> AccessToken {
         let request = try makeAuthorizationRequest(with: credentials)
         let payload = try await send(request: request)
         let accessToken = try decodeAccessToken(from: payload.data)

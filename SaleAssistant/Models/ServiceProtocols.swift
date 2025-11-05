@@ -7,18 +7,18 @@
 
 import Foundation
 
-protocol Authenticating {
+public protocol Authenticating {
     func authenticate(with credentials: Credentials) async throws -> AccessToken
 }
 
-protocol ProductsLoading {
+public protocol ProductsLoading {
     func loadProducts() async throws -> [Product]
 }
 
-protocol SalesLoading {
+public protocol SalesLoading {
     func loadSales() async throws -> [Sale]
 }
 
-protocol RatesLoading {
+public protocol RatesLoading {
     func loadRates() async throws -> [String: Decimal]
 }
