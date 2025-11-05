@@ -38,7 +38,7 @@ extension RemoteLoader {
     enum Error: LocalizedError {
         case invalidLoginOrPassword
         case serverUnavailable
-        case unauthorized
+        case unauthenticated
         case notFound
         
         var errorDescription: String? {
@@ -47,8 +47,8 @@ extension RemoteLoader {
                 return "Invalid login or password"
             case .serverUnavailable:
                 return "Server is unavailable, try again later"
-            case .unauthorized:
-                return "Unauthorized"
+            case .unauthenticated:
+                return "Unauthenticated"
             case .notFound:
                 return "Not found"
             }

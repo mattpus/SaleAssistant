@@ -10,32 +10,32 @@ import XCTest
 
 @MainActor
 final class AuthenticationServiceTests: XCTestCase {
-    func test_authorize_requestsDataFromURL() async throws {
+    func test_authenticate_requestsDataFromURL() async throws {
         let url = anyURL()
         let (sut, client, _) = makeSUT(url: url)
-        client.stubAuthorizedResult(with: makeAccessTokenData())
+        client.stubauthenticatedResult(with: makeAccessTokenData())
 
-        _ = try await sut.authorize(with: Credentials(login: "user", password: "pass"))
+        _ = try await sut.authenticate(with: Credentials(login: "user", password: "pass"))
 
         XCTAssertEqual(client.requestedURLs, [url])
     }
 
-    func test_authorize_usesPOSTMethod() async throws {
+    func test_authenticate_usesPOSTMethod() async throws {
         let credentials = Credentials(login: "user", password: "pass")
         let (sut, client, _) = makeSUT()
-        client.stubAuthorizedResult(with: makeAccessTokenData())
+        client.stubauthenticatedResult(with: makeAccessTokenData())
         
-        _ = try await sut.authorize(with: credentials)
+        _ = try await sut.authenticate(with: credentials)
         
         XCTAssertEqual(client.requests.first?.httpMethod, "POST")
     }
     
-    func test_authorize_setsJSONBodyWithCredentials() async throws {
+    func test_authenticate_setsJSONBodyWithCredentials() async throws {
         let credentials = Credentials(login: "user", password: "pass")
         let (sut, client, _) = makeSUT()
-        client.stubAuthorizedResult(with: makeAccessTokenData())
+        client.stubauthenticatedResult(with: makeAccessTokenData())
         
-        _ = try await sut.authorize(with: credentials)
+        _ = try await sut.authenticate(with: credentials)
         
         let request = try XCTUnwrap(client.requests.first)
         let bodyData = try XCTUnwrap(request.httpBody)
@@ -44,33 +44,33 @@ final class AuthenticationServiceTests: XCTestCase {
         XCTAssertEqual(jsonObject["password"], credentials.password)
     }
     
-    func test_authorize_setsContentTypeHeaderToJSON() async throws {
+    func test_authenticate_setsContentTypeHeaderToJSON() async throws {
         let credentials = Credentials(login: "user", password: "pass")
         let (sut, client, _) = makeSUT()
-        client.stubAuthorizedResult(with: makeAccessTokenData())
+        client.stubauthenticatedResult(with: makeAccessTokenData())
         
-        _ = try await sut.authorize(with: credentials)
+        _ = try await sut.authenticate(with: credentials)
         
         XCTAssertEqual(client.requests.first?.value(forHTTPHeaderField: "Content-Type"), "application/json")
     }
 
-    func test_authorize_deliversAccessTokenOn200ResponseWithValidJSON() async throws {
+    func test_authenticate_deliversAccessTokenOn200ResponseWithValidJSON() async throws {
         let token = AccessToken(value: "token", expirationDate: Date().addingTimeInterval(3600))
         let (sut, client, _) = makeSUT()
-        client.stubAuthorizedResult(with: makeAccessTokenData(for: token))
+        client.stubauthenticatedResult(with: makeAccessTokenData(for: token))
 
-        let receivedToken = try await sut.authorize(with: Credentials(login: "user", password: "pass"))
+        let receivedToken = try await sut.authenticate(with: Credentials(login: "user", password: "pass"))
 
         XCTAssertEqual(receivedToken.value, token.value)
         XCTAssertEqual(receivedToken.expirationDate, token.expirationDate)
     }
 
-    func test_authorize_throwsConnectivityErrorOnClientFailure() async {
+    func test_authenticate_throwsConnectivityErrorOnClientFailure() async {
         let (sut, client, _) = makeSUT()
         client.stub(result: .failure(anyNSError()))
 
         do {
-            _ = try await sut.authorize(with: Credentials(login: "user", password: "pass"))
+            _ = try await sut.authenticate(with: Credentials(login: "user", password: "pass"))
             XCTFail("Expected to throw, got success instead")
         } catch let error as AuthenticationService.Error {
             XCTAssertEqual(error, .connectivity)
@@ -79,12 +79,12 @@ final class AuthenticationServiceTests: XCTestCase {
         }
     }
 
-    func test_authorize_throwsInvalidDataOnNon200Response() async {
+    func test_authenticate_throwsInvalidDataOnNon200Response() async {
         let (sut, client, _) = makeSUT()
         client.stub(result: .success((Data(), anyHTTPResponse(statusCode: 400))))
 
         do {
-            _ = try await sut.authorize(with: Credentials(login: "user", password: "pass"))
+            _ = try await sut.authenticate(with: Credentials(login: "user", password: "pass"))
             XCTFail("Expected to throw, got success instead")
         } catch let error as AuthenticationService.Error {
             XCTAssertEqual(error, .connectivity)
@@ -93,12 +93,12 @@ final class AuthenticationServiceTests: XCTestCase {
         }
     }
 
-    func test_authorize_throwsInvalidDataOnInvalidJSON() async {
+    func test_authenticate_throwsInvalidDataOnInvalidJSON() async {
         let (sut, client, _) = makeSUT()
         client.stub(result: .success((Data("invalid json".utf8), anyHTTPResponse())))
 
         do {
-            _ = try await sut.authorize(with: Credentials(login: "user", password: "pass"))
+            _ = try await sut.authenticate(with: Credentials(login: "user", password: "pass"))
             XCTFail("Expected to throw, got success instead")
         } catch let error as AuthenticationService.Error {
             XCTAssertEqual(error, .invalidData)
@@ -107,36 +107,36 @@ final class AuthenticationServiceTests: XCTestCase {
         }
     }
 
-    func test_refreshToken_returnsValueFromAuthorize() async throws {
+    func test_refreshToken_returnsValueFromauthenticate() async throws {
         let expectedToken = "refreshed-token"
         let accessToken = AccessToken(value: expectedToken, expirationDate: Date().addingTimeInterval(3600))
         let (sut, client, _) = makeSUT()
-        client.stubAuthorizedResult(with: makeAccessTokenData(for: accessToken))
+        client.stubauthenticatedResult(with: makeAccessTokenData(for: accessToken))
 
         let token = try await sut.refreshToken()
 
         XCTAssertEqual(token, expectedToken)
     }
 
-    func test_authorize_savesTokenUsingTokenSaver() async throws {
+    func test_authenticate_savesTokenUsingTokenSaver() async throws {
         let token = AccessToken(value: "token", expirationDate: Date().addingTimeInterval(3600))
         let (sut, client, tokenSaver) = makeSUT()
-        client.stubAuthorizedResult(with: makeAccessTokenData(for: token))
+        client.stubauthenticatedResult(with: makeAccessTokenData(for: token))
 
-        _ = try await sut.authorize(with: Credentials(login: "user", password: "pass"))
+        _ = try await sut.authenticate(with: Credentials(login: "user", password: "pass"))
 
         XCTAssertEqual(tokenSaver.savedTokens, [token])
     }
 
-    func test_authorize_throwsSaverErrorWhenSaveFails() async {
+    func test_authenticate_throwsSaverErrorWhenSaveFails() async {
         let expectedError = anyNSError()
         let token = AccessToken(value: "token", expirationDate: Date().addingTimeInterval(3600))
         let (sut, client, tokenSaver) = makeSUT()
-        client.stubAuthorizedResult(with: makeAccessTokenData(for: token))
+        client.stubauthenticatedResult(with: makeAccessTokenData(for: token))
         tokenSaver.saveResult = .failure(expectedError)
 
         do {
-            _ = try await sut.authorize(with: Credentials(login: "user", password: "pass"))
+            _ = try await sut.authenticate(with: Credentials(login: "user", password: "pass"))
             XCTFail("Expected to throw, got success instead")
         } catch {
             XCTAssertEqual(error as NSError, expectedError)
@@ -175,7 +175,7 @@ final class AuthenticationServiceTests: XCTestCase {
 }
 
 private extension HTTPClientSpy {
-    func stubAuthorizedResult(with data: Data, statusCode: Int = 200) {
+    func stubauthenticatedResult(with data: Data, statusCode: Int = 200) {
         stub(result: .success((data, anyHTTPResponse(statusCode: statusCode))))
     }
 }

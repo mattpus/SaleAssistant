@@ -7,7 +7,7 @@
 
 import Foundation
 
-public final class ProductsService {
+public final class ProductsService: ProductsLoading {
     
     public enum Error: Swift.Error, Equatable {
         case connectivity
