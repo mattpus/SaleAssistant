@@ -1,12 +1,16 @@
 //
-//  GetTokenService.swift
+//  TokenProtocols.swift
 //  SaleAssistant
 //
 //  Created by Matt on 03/11/2025.
 //
 
-public protocol GetTokenService: AnyObject {
+public protocol TokenProvider: AnyObject {
     func getToken() async throws -> String
+}
+
+public protocol RefreshTokenRetriever: AnyObject {
+    func refreshToken() async throws -> String
 }
 
 public protocol TokenSaver: AnyObject {
@@ -16,4 +20,3 @@ public protocol TokenSaver: AnyObject {
 public protocol TokenLoader: AnyObject {
     func load() async -> Result<AccessToken, Swift.Error>
 }
-

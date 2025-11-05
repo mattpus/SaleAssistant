@@ -41,7 +41,8 @@ final class HTTPClientSpy: HTTPClient {
         results[url] = result
     }
 
-    func get(from url: URL) async throws -> (data: Data, response: HTTPURLResponse) {
+    func perform(request: URLRequest) async throws -> (data: Data, response: HTTPURLResponse) {
+        let url = request.url!
         requestedURLs.append(url)
 
         let result = results[url] ?? defaultResult

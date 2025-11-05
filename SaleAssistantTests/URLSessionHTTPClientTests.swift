@@ -26,7 +26,7 @@ final class URLSessionHTTPClientTests: XCTestCase {
 
         let sut = makeSUT()
 
-        _ = try? await sut.get(from: url)
+        _ = try? await sut.perform(request: URLRequest(url: url))
         await fulfillment(of: [expectation], timeout: 1.0)
     }
 
@@ -38,7 +38,7 @@ final class URLSessionHTTPClientTests: XCTestCase {
         let sut = makeSUT()
 
         do {
-            _ = try await sut.get(from: url)
+            _ = try await sut.perform(request: URLRequest(url: url))
             XCTFail("Expected error")
         } catch {
             let receivedError = error as NSError
@@ -55,7 +55,7 @@ final class URLSessionHTTPClientTests: XCTestCase {
 
         let sut = makeSUT()
 
-        let received = try await sut.get(from: url)
+        let received = try await sut.perform(request: URLRequest(url: url))
 
         XCTAssertEqual(received.data, data)
         XCTAssertEqual(received.response.url, response.url)
@@ -72,7 +72,7 @@ final class URLSessionHTTPClientTests: XCTestCase {
         let sut = makeSUT()
 
         do {
-            _ = try await sut.get(from: url)
+            _ = try await sut.perform(request: URLRequest(url: url))
             XCTFail("Expected error")
         } catch {
             guard case URLSessionHTTPClient.Error.invalidResponse = error else {

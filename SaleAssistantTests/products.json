@@ -1,0 +1,42 @@
+[
+    {
+        "id": "7019D8A7-0B35-4057-B7F9-8C5471961ED0",
+        "name": "Mac mini"
+    },
+    {
+        "id": "1F4A3B22-9E6E-46FC-BB6C-48B33269951B",
+        "name": "Vision Pro"
+    },
+    {
+        "id": "00D0CD9A-452C-4812-B264-1B73823C94CA",
+        "name": "HomePod mini"
+    },
+    {
+        "id": "11E123D5-1272-4F17-9B91-F3D0FFEC895A",
+        "name": "iMac"
+    },
+    {
+        "id": "31768993-1A2E-4B65-BD2A-D8AF06416730",
+        "name": "AirTag"
+    },
+    {
+        "id": "54F35D06-9CC6-4294-A0D8-963D397E8B98",
+        "name": "Apple TV 4K"
+    },
+    {
+        "id": "93F3F9B1-D3B0-46B6-9546-2808A65FCC20",
+        "name": "iPhone"
+    },
+    {
+        "id": "CF68C4D7-D7B9-44BE-8D10-BDD8464915C2",
+        "name": "MacBook Pro"
+    },
+    {
+        "id": "8FD1F6C1-F8DE-4C76-B57C-4AE28F14D270",
+        "name": "Apple Watch"
+    },
+    {
+        "id": "5ACC3B53-F55F-4C89-8DD4-4013420D6D15",
+        "name": "iPad Pro"
+    }
+]
