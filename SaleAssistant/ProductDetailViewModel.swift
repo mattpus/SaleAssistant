@@ -1,0 +1,138 @@
+//
+//  ProductDetailViewModel.swift
+//  SaleAssistant
+//
+//  Created by Matt on 05/11/2025.
+//
+
+import Combine
+import Foundation
+
+@MainActor
+final class ProductDetailViewModel: ObservableObject {
+    struct SaleItem: Identifiable, Equatable {
+        let id: String
+        let originalAmount: Decimal
+        let originalCurrency: String
+        let usdAmount: Decimal
+        let date: Date
+    }
+
+    enum ConversionError: Swift.Error, Equatable {
+        case missingRate(currency: String)
+    }
+
+    @Published private(set) var productName: String
+    @Published private(set) var isLoading = false
+    @Published private(set) var saleItems: [SaleItem] = []
+    @Published private(set) var salesCount: Int = 0
+    @Published private(set) var totalSalesUSD: Decimal = .zero
+    @Published private(set) var error: Swift.Error?
+    @Published private(set) var sessionExpired = false
+
+    private let product: Product
+    private let salesLoader: SalesLoading
+    private let ratesLoader: RatesLoading
+
+    init(product: Product,
+         salesLoader: SalesLoading,
+         ratesLoader: RatesLoading) {
+        self.product = product
+        self.salesLoader = salesLoader
+        self.ratesLoader = ratesLoader
+        self.productName = product.name
+    }
+
+    convenience init(product: Product,
+                     salesURL: URL,
+                     ratesURL: URL,
+                     client: HTTPClient,
+                     tokenProvider: TokenProvider,
+                     decoder: JSONDecoder = JSONDecoder()) {
+        let authenticatedClient = AuthenticatedHTTPClientDecorator(docoratee: client, tokenProvider: tokenProvider)
+        let salesService = SalesService(url: salesURL, client: authenticatedClient, decoder: decoder)
+        let ratesService = RatesService(url: ratesURL, client: authenticatedClient, decoder: decoder)
+        self.init(product: product, salesLoader: salesService, ratesLoader: ratesService)
+    }
+
+    func load() async {
+        isLoading = true
+        error = nil
+        sessionExpired = false
+        saleItems = []
+        salesCount = 0
+        totalSalesUSD = .zero
+
+        defer { isLoading = false }
+
+        do {
+            async let salesTask = salesLoader.loadSales()
+            async let ratesTask = ratesLoader.loadRates()
+
+            let allSales = try await salesTask
+            let rates = try await ratesTask
+
+            let productSales = allSales.filter { $0.productID == product.id }
+            let (items, totalUSD) = try makeItems(from: productSales, rates: rates)
+
+            saleItems = items
+            salesCount = items.count
+            totalSalesUSD = totalUSD
+        } catch {
+            handle(error: error)
+        }
+    }
+
+    private func makeItems(from sales: [Sale], rates: [String: Decimal]) throws -> ([SaleItem], Decimal) {
+        var total: Decimal = .zero
+        let items = try sales.enumerated().map { offset, sale -> SaleItem in
+            let usdAmount = try convertToUSD(sale: sale, rates: rates)
+            total += usdAmount
+            return SaleItem(id: makeIdentifier(for: sale, offset: offset),
+                            originalAmount: sale.amount,
+                            originalCurrency: sale.currencyCode.uppercased(),
+                            usdAmount: usdAmount,
+                            date: sale.date)
+        }
+
+        let sortedItems = items.sorted { $0.date > $1.date }
+        return (sortedItems, total)
+    }
+
+    private func convertToUSD(sale: Sale, rates: [String: Decimal]) throws -> Decimal {
+        let currency = sale.currencyCode.uppercased()
+
+        if currency == "USD" {
+            return sale.amount
+        }
+
+        if let rate = rates[currency] {
+            return sale.amount * rate
+        }
+
+        throw ConversionError.missingRate(currency: currency)
+    }
+
+    private func makeIdentifier(for sale: Sale, offset: Int) -> String {
+        "\(sale.productID)-\(sale.date.timeIntervalSince1970)-\(offset)"
+    }
+
+    private func handle(error: Swift.Error) {
+        if isUnauthorized(error) {
+            sessionExpired = true
+        }
+        self.error = error
+    }
+
+    private func isUnauthorized(_ error: Swift.Error) -> Bool {
+        if let salesError = error as? SalesService.Error, salesError == .unauthorized {
+            return true
+        }
+
+        if let ratesError = error as? RatesService.Error, ratesError == .unauthorized {
+            return true
+        }
+
+        return false
+    }
+}

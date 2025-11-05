@@ -12,6 +12,7 @@ public final class ProductsService: ProductsLoading {
     public enum Error: Swift.Error, Equatable {
         case connectivity
         case invalidData
+        case unauthorized
     }
 
     private let url: URL
@@ -36,6 +37,9 @@ public final class ProductsService: ProductsLoading {
         }
 
         guard payload.response.statusCode == 200 else {
+            if payload.response.statusCode == 401 {
+                throw Error.unauthorized
+            }
             throw Error.invalidData
         }
 

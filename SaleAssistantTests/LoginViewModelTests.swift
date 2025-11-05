@@ -2,7 +2,7 @@
 //  LoginViewModelTests.swift
 //  SaleAssistantTests
 //
-//  Created by OpenAI Assistant on 05/11/2025.
+//  Created by Matt on 05/11/2025.
 //
 
 import Foundation

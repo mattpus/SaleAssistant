@@ -17,10 +17,10 @@ class KeychainTokenStore {
             self.expirationDate = token.expirationDate
         }
         func token() -> AccessToken {
-        AccessToken(value: value, expirationDate: expirationDate)
+            AccessToken(value: value, expirationDate: expirationDate)
         }
     }
-
+    
     enum Error: Swift.Error {
         case dataNotFound
         case saveFailed

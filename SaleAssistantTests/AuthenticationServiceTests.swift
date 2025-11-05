@@ -2,7 +2,7 @@
 //  AuthenticationServiceTests.swift
 //  SaleAssistantTests
 //
-//  Created by OpenAI Assistant on 05/11/2025.
+//  Created by Matt on 05/11/2025.
 //
 
 import XCTest
@@ -13,7 +13,7 @@ final class AuthenticationServiceTests: XCTestCase {
     func test_authenticate_requestsDataFromURL() async throws {
         let url = anyURL()
         let (sut, client, _) = makeSUT(url: url)
-        client.stubauthenticatedResult(with: makeAccessTokenData())
+        client.stubAuthenticatedResult(with: makeAccessTokenData())
 
         _ = try await sut.authenticate(with: Credentials(login: "user", password: "pass"))
 
@@ -23,7 +23,7 @@ final class AuthenticationServiceTests: XCTestCase {
     func test_authenticate_usesPOSTMethod() async throws {
         let credentials = Credentials(login: "user", password: "pass")
         let (sut, client, _) = makeSUT()
-        client.stubauthenticatedResult(with: makeAccessTokenData())
+        client.stubAuthenticatedResult(with: makeAccessTokenData())
         
         _ = try await sut.authenticate(with: credentials)
         
@@ -33,7 +33,7 @@ final class AuthenticationServiceTests: XCTestCase {
     func test_authenticate_setsJSONBodyWithCredentials() async throws {
         let credentials = Credentials(login: "user", password: "pass")
         let (sut, client, _) = makeSUT()
-        client.stubauthenticatedResult(with: makeAccessTokenData())
+        client.stubAuthenticatedResult(with: makeAccessTokenData())
         
         _ = try await sut.authenticate(with: credentials)
         
@@ -47,7 +47,7 @@ final class AuthenticationServiceTests: XCTestCase {
     func test_authenticate_setsContentTypeHeaderToJSON() async throws {
         let credentials = Credentials(login: "user", password: "pass")
         let (sut, client, _) = makeSUT()
-        client.stubauthenticatedResult(with: makeAccessTokenData())
+        client.stubAuthenticatedResult(with: makeAccessTokenData())
         
         _ = try await sut.authenticate(with: credentials)
         
@@ -57,7 +57,7 @@ final class AuthenticationServiceTests: XCTestCase {
     func test_authenticate_deliversAccessTokenOn200ResponseWithValidJSON() async throws {
         let token = AccessToken(value: "token", expirationDate: Date().addingTimeInterval(3600))
         let (sut, client, _) = makeSUT()
-        client.stubauthenticatedResult(with: makeAccessTokenData(for: token))
+        client.stubAuthenticatedResult(with: makeAccessTokenData(for: token))
 
         let receivedToken = try await sut.authenticate(with: Credentials(login: "user", password: "pass"))
 
@@ -107,11 +107,11 @@ final class AuthenticationServiceTests: XCTestCase {
         }
     }
 
-    func test_refreshToken_returnsValueFromauthenticate() async throws {
+    func test_refreshToken_returnsValueFromAuthenticate() async throws {
         let expectedToken = "refreshed-token"
         let accessToken = AccessToken(value: expectedToken, expirationDate: Date().addingTimeInterval(3600))
         let (sut, client, _) = makeSUT()
-        client.stubauthenticatedResult(with: makeAccessTokenData(for: accessToken))
+        client.stubAuthenticatedResult(with: makeAccessTokenData(for: accessToken))
 
         let token = try await sut.refreshToken()
 
@@ -121,7 +121,7 @@ final class AuthenticationServiceTests: XCTestCase {
     func test_authenticate_savesTokenUsingTokenSaver() async throws {
         let token = AccessToken(value: "token", expirationDate: Date().addingTimeInterval(3600))
         let (sut, client, tokenSaver) = makeSUT()
-        client.stubauthenticatedResult(with: makeAccessTokenData(for: token))
+        client.stubAuthenticatedResult(with: makeAccessTokenData(for: token))
 
         _ = try await sut.authenticate(with: Credentials(login: "user", password: "pass"))
 
@@ -132,7 +132,7 @@ final class AuthenticationServiceTests: XCTestCase {
         let expectedError = anyNSError()
         let token = AccessToken(value: "token", expirationDate: Date().addingTimeInterval(3600))
         let (sut, client, tokenSaver) = makeSUT()
-        client.stubauthenticatedResult(with: makeAccessTokenData(for: token))
+        client.stubAuthenticatedResult(with: makeAccessTokenData(for: token))
         tokenSaver.saveResult = .failure(expectedError)
 
         do {
@@ -175,7 +175,7 @@ final class AuthenticationServiceTests: XCTestCase {
 }
 
 private extension HTTPClientSpy {
-    func stubauthenticatedResult(with data: Data, statusCode: Int = 200) {
+    func stubAuthenticatedResult(with data: Data, statusCode: Int = 200) {
         stub(result: .success((data, anyHTTPResponse(statusCode: statusCode))))
     }
 }

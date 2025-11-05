@@ -28,26 +28,59 @@ func anyHTTPResponse(statusCode: Int = 200) -> HTTPURLResponse {
     HTTPURLResponse(url: anyURL(), statusCode: statusCode, httpVersion: nil, headerFields: nil)!
 }
 
+func loadFixture(named name: String,
+                 withExtension fileExtension: String = "json",
+                 file: StaticString = #filePath,
+                 line: UInt = #line) -> Data {
+    let directory = URL(fileURLWithPath: String(describing: file)).deletingLastPathComponent()
+    let url = directory.appendingPathComponent("\(name).\(fileExtension)")
+
+    do {
+        return try Data(contentsOf: url)
+    } catch {
+        XCTFail("Failed to load fixture \(name).\(fileExtension): \(error)", file: file, line: line)
+        return Data()
+    }
+}
+
 final class HTTPClientSpy: HTTPClient {
-    private(set) var requestedURLs: [URL] = []
-    private(set) var requests: [URLRequest] = []
-    private var results: [URL: Result<(Data, HTTPURLResponse), Error>] = [:]
-    private var defaultResult: Result<(Data, HTTPURLResponse), Error>?
+    private let requestedURLsStorage = Mutex<[URL]>([])
+    private let requestsStorage = Mutex<[URLRequest]>([])
+    private let resultsStorage = Mutex<[URL: Result<(Data, HTTPURLResponse), Error>]>([:])
+    private let defaultResultStorage = Mutex<Result<(Data, HTTPURLResponse), Error>?>(nil)
+
+    var requestedURLs: [URL] {
+        requestedURLsStorage.withLock { $0 }
+    }
+
+    var requests: [URLRequest] {
+        requestsStorage.withLock { $0 }
+    }
 
     func stub(result: Result<(Data, HTTPURLResponse), Error>) {
-        defaultResult = result
+        defaultResultStorage.withLock { storage in
+            storage = result
+        }
     }
 
     func stub(result: Result<(Data, HTTPURLResponse), Error>, for url: URL) {
-        results[url] = result
+        resultsStorage.withLock { storage in
+            storage[url] = result
+        }
     }
 
     func perform(request: URLRequest) async throws -> (data: Data, response: HTTPURLResponse) {
         let url = request.url!
-        requestedURLs.append(url)
-        requests.append(request)
+        requestedURLsStorage.withLock { storage in
+            storage.append(url)
+        }
+        requestsStorage.withLock { storage in
+            storage.append(request)
+        }
 
-        let result = results[url] ?? defaultResult
+        let result = resultsStorage.withLock { storage in
+            storage[url]
+        } ?? defaultResultStorage.withLock { $0 }
 
         guard let result else {
             fatalError("No stub for URL \(url)")
