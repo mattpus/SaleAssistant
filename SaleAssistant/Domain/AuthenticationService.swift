@@ -77,7 +77,6 @@ public final class AuthenticationService: RefreshTokenRetriever, Authenticating 
     
     private func decodeAccessToken(from data: Data) throws -> AccessToken {
         do {
-            // TODO: double check what actually we get from the data, i dont think it is really an accessToken object just string probably
             let result = try decoder.decode(AccessTokenDTO.self, from: data)
             return result.model
         } catch {
@@ -108,7 +107,6 @@ private struct AccessTokenDTO: Decodable {
     }
     
     var model: AccessToken {
-        AccessToken(value: accessToken, expirationDate: Date().advanced(by: 80000))
+        AccessToken(value: accessToken, expirationDate: Date().addingTimeInterval(120))
     }
-    
 }

@@ -84,4 +84,14 @@ final class Dependencies: ObservableObject {
     func resetSession() {
         tokenStore.clear()
     }
+
+    func hasValidStoredToken() async -> Bool {
+        let result = await tokenStore.load()
+        switch result {
+        case .success(let token):
+            return token.isValid
+        case .failure:
+            return false
+        }
+    }
 }

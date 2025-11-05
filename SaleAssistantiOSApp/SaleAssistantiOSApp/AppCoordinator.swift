@@ -12,6 +12,7 @@ import SaleAssistant
 @MainActor
 final class AppCoordinator: ObservableObject {
     enum Route {
+        case idle
         case login
         case products
     }
@@ -20,18 +21,25 @@ final class AppCoordinator: ObservableObject {
         case product(ProductViewModel.Item)
     }
 
-    @Published private(set) var route: Route = .login
+    @Published private(set) var route: Route = .idle
     @Published var path: [Destination] = []
 
     private let dependencies: Dependencies
+    private lazy var loginViewModel = dependencies.loginViewModel
+    private lazy var productViewModel = dependencies.productViewModel
+    private var hasEvaluatedStoredToken = false
 
     init(dependencies: Dependencies) {
         self.dependencies = dependencies
+        Task {
+         
+        }
     }
 
     func showLogin() {
         route = .login
         path.removeAll()
+        hasEvaluatedStoredToken = false
     }
 
     func showProducts() {
@@ -54,9 +62,15 @@ final class AppCoordinator: ObservableObject {
     @ViewBuilder
     func rootView() -> some View {
         switch route {
+        case .idle:
+            ProgressView()
+                .task {
+                    await self.evaluateStoredTokenIfNeeded()
+            }
         case .login:
-            LoginView(viewModel: dependencies.loginViewModel,
+            LoginView(viewModel: loginViewModel,
                       onSuccess: { [weak self] in self?.showProducts() })
+
         case .products:
             productListView()
         }
@@ -71,7 +85,7 @@ final class AppCoordinator: ObservableObject {
     }
 
     private func productListView() -> some View {
-        ProductListView(viewModel:  dependencies.productViewModel,
+        ProductListView(viewModel: productViewModel,
                         onLogout: { [weak self] in self?.logout() },
                         onSelect: { [weak self] item in self?.showDetail(for: item) },
                         onSessionExpired: { [weak self] in self?.logout() })
@@ -80,6 +94,17 @@ final class AppCoordinator: ObservableObject {
     private func detailView(for item: ProductViewModel.Item) -> some View {
         ProductDetailView(viewModel: dependencies.makeProductDetailViewModel(for: Product(id: item.id, name: item.name)),
                           onSessionExpired: { [weak self] in self?.logout() })
+    }
+
+    private func evaluateStoredTokenIfNeeded() async {
+        guard !hasEvaluatedStoredToken else { return }
+        hasEvaluatedStoredToken = true
+        let hasValidToken = await dependencies.hasValidStoredToken()
+        if hasValidToken {
+            showProducts()
+        } else {
+            showLogin()
+        }
     }
 }
 

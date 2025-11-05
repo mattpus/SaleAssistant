@@ -42,7 +42,7 @@ struct ProductListView: View {
         .refreshable {
             await viewModel.load()
         }
-        .onChange(of: viewModel.sessionExpired) { expired in
+        .onChange(of: viewModel.sessionExpired) { _, expired in
             if expired {
                 onSessionExpired()
             }

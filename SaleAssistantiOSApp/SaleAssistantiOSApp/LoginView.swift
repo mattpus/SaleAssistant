@@ -37,7 +37,6 @@ struct LoginView: View {
             Section {
                 Button(action: login) {
                     if viewModel.isLoading {
-                 
                         ProgressView()
                             .frame(maxWidth: .infinity)
                     } else {
