@@ -10,6 +10,7 @@ import SaleAssistant
 
 struct ProductDetailView: View {
     @ObservedObject var viewModel: ProductDetailViewModel
+    let onSessionExpired: () -> Void
 
     var body: some View {
         List {
@@ -43,6 +44,11 @@ struct ProductDetailView: View {
         .refreshable {
             await viewModel.load()
         }
+        .onChange(of: viewModel.sessionExpired) { _, expired in
+            if expired {
+                onSessionExpired()
+            }
+        }
     }
 }
 
@@ -61,5 +67,6 @@ struct ProductDetailView: View {
 
     return ProductDetailView(viewModel: ProductDetailViewModel(product: Product(id: UUID().uuidString, name: "Preview Product"),
                                                        salesLoader: PreviewSalesLoader(),
-                                                       ratesLoader: PreviewRatesLoader()))
+                                                       ratesLoader: PreviewRatesLoader()),
+                             onSessionExpired: {})
 }

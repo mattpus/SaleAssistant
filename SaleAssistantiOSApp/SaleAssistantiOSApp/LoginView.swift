@@ -16,39 +16,39 @@ struct LoginView: View {
     @State private var password = "password"
     
     var body: some View {
-        NavigationStack {
-            Form {
-                Section(header: Text("Credentials")) {
-                    TextField("Username", text: $username)
-                        .textContentType(.username)
-                        .autocapitalization(.none)
-                        .disableAutocorrection(true)
-                    
-                    SecureField("Password", text: $password)
-                        .textContentType(.password)
-                }
+        Form {
+            Section(header: Text("Credentials")) {
+                TextField("Username", text: $username)
+                    .textContentType(.username)
+                    .autocapitalization(.none)
+                    .disableAutocorrection(true)
                 
-                if let message = errorMessage {
-                    Section {
-                        Text(message)
-                            .foregroundStyle(.red)
-                    }
-                }
-                
+                SecureField("Password", text: $password)
+                    .textContentType(.password)
+            }
+            
+            if let message = errorMessage {
                 Section {
-                    Button(action: login) {
-                        if viewModel.isLoading {
-                            ProgressView()
-                        } else {
-                            Text("Login")
-                                .frame(maxWidth: .infinity)
-                        }
-                    }
-                    .disabled(!canSubmit)
+                    Text(message)
+                        .foregroundStyle(.red)
                 }
             }
-            .navigationTitle("Login")
+            
+            Section {
+                Button(action: login) {
+                    if viewModel.isLoading {
+                 
+                        ProgressView()
+                            .frame(maxWidth: .infinity)
+                    } else {
+                        Text("Login")
+                            .frame(maxWidth: .infinity)
+                    }
+                }
+                .disabled(!canSubmit)
+            }
         }
+        .navigationTitle("Login")
     }
     
     private var canSubmit: Bool {

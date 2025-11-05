@@ -11,18 +11,19 @@ import SaleAssistant
 
 @MainActor
 final class AppCoordinator: ObservableObject {
-    enum Route: Equatable {
+    enum Route {
         case login
-        case productList
+        case products
+    }
+
+    enum Destination: Hashable {
         case product(ProductViewModel.Item)
     }
 
     @Published private(set) var route: Route = .login
-    @Published var path: [ProductViewModel.Item] = []
+    @Published var path: [Destination] = []
 
     private let dependencies: Dependencies
-    private lazy var loginViewModel = dependencies.loginViewModel
-    private lazy var productViewModel = dependencies.productViewModel
 
     init(dependencies: Dependencies) {
         self.dependencies = dependencies
@@ -34,17 +35,15 @@ final class AppCoordinator: ObservableObject {
     }
 
     func showProducts() {
-        route = .productList
+        route = .products
         path.removeAll()
     }
 
     func showDetail(for item: ProductViewModel.Item) {
-        if route != .productList {
+        if route != .products {
             showProducts()
         }
-        if !path.contains(item) {
-            path.append(item)
-        }
+        path = [.product(item)]
     }
 
     func logout() {
@@ -53,23 +52,34 @@ final class AppCoordinator: ObservableObject {
     }
 
     @ViewBuilder
-    func viewForCurrentRoute() -> some View {
+    func rootView() -> some View {
         switch route {
         case .login:
-            LoginView(viewModel: loginViewModel,
+            LoginView(viewModel: dependencies.loginViewModel,
                       onSuccess: { [weak self] in self?.showProducts() })
-        case .productList:
-            ProductListView(viewModel: productViewModel,
-                            onLogout: { [weak self] in self?.logout() },
-                            onSelect: { [weak self] item in self?.showDetail(for: item) })
-        case .product(let item):
-            destination(for: item)
+        case .products:
+            productListView()
         }
-    
     }
 
-    func destination(for item: ProductViewModel.Item) -> some View {
-        ProductDetailView(viewModel: dependencies.makeProductDetailViewModel(for: Product(id: item.id, name: item.name)))
+    @ViewBuilder
+    func destination(for destination: Destination) -> some View {
+        switch destination {
+        case .product(let item):
+            detailView(for: item)
+        }
+    }
+
+    private func productListView() -> some View {
+        ProductListView(viewModel:  dependencies.productViewModel,
+                        onLogout: { [weak self] in self?.logout() },
+                        onSelect: { [weak self] item in self?.showDetail(for: item) },
+                        onSessionExpired: { [weak self] in self?.logout() })
+    }
+
+    private func detailView(for item: ProductViewModel.Item) -> some View {
+        ProductDetailView(viewModel: dependencies.makeProductDetailViewModel(for: Product(id: item.id, name: item.name)),
+                          onSessionExpired: { [weak self] in self?.logout() })
     }
 }
 
@@ -82,10 +92,10 @@ struct AppCoordinatorView: View {
 
     var body: some View {
         NavigationStack(path: $coordinator.path) {
-            coordinator.viewForCurrentRoute()
+            coordinator.rootView()
                 .animation(.default, value: coordinator.route)
-                .navigationDestination(for: ProductViewModel.Item.self) { item in
-                    coordinator.destination(for: item)
+                .navigationDestination(for: AppCoordinator.Destination.self) { destination in
+                    coordinator.destination(for: destination)
                 }
         }
     }

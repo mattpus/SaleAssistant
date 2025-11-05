@@ -12,35 +12,39 @@ struct ProductListView: View {
     @ObservedObject var viewModel: ProductViewModel
     let onLogout: () -> Void
     let onSelect: (ProductViewModel.Item) -> Void
+    let onSessionExpired: () -> Void
     
     var body: some View {
-        NavigationStack {
-            List(viewModel.items) { item in
-                Button(action: { onSelect(item) }) {
-                    HStack(spacing: 4) {
-                        Text(item.name)
-                            .font(.headline)
-                        Spacer()
-                        Text("\(item.salesCount) sales")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding(.vertical, 4)
+        List(viewModel.items) { item in
+            Button(action: { onSelect(item) }) {
+                HStack(spacing: 4) {
+                    Text(item.name)
+                        .font(.headline)
+                    Spacer()
+                    Text("\(item.salesCount) sales")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                 }
-                .buttonStyle(.plain)
+                .padding(.vertical, 4)
             }
-            .navigationTitle("Products")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Logout", action: onLogout)
-                }
+            .buttonStyle(.plain)
+        }
+        .navigationTitle("Products")
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button("Logout", action: onLogout)
             }
-            .overlay { overlayContent }
-            .task {
-                await viewModel.load()
-            }
-            .refreshable {
-                await viewModel.load()
+        }
+        .overlay { overlayContent }
+        .task {
+            await viewModel.load()
+        }
+        .refreshable {
+            await viewModel.load()
+        }
+        .onChange(of: viewModel.sessionExpired) { expired in
+            if expired {
+                onSessionExpired()
             }
         }
     }
@@ -74,5 +78,6 @@ struct ProductListView: View {
     return ProductListView(viewModel: ProductViewModel(productsLoader: PreviewProductsLoader(),
                                                        salesLoader: PreviewSalesLoader()),
                            onLogout: {},
-                           onSelect: { _ in })
+                           onSelect: { _ in },
+                           onSessionExpired: {})
 }
