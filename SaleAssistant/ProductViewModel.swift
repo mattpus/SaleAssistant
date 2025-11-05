@@ -10,7 +10,7 @@ import Foundation
 
 @MainActor
 public final class ProductViewModel: ObservableObject {
-    public struct Item: Equatable, Identifiable {
+    public struct Item: Equatable, Hashable, Identifiable {
         public let id: String
         public let name: String
         public let salesCount: Int

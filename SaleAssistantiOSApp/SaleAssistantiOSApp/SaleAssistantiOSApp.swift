@@ -9,12 +9,11 @@ import SwiftUI
 
 @main
 struct SaleAssistantiOSApp: App {
-
-    @StateObject var coordinator = AppCoordinator(dependencies: Dependencies())
+   let coordinator = AppCoordinator(dependencies: Dependencies())
 
     var body: some Scene {
         WindowGroup {
-            AppCoordinatorView(coordinator: self.coordinator)
+            AppCoordinatorView(coordinator: coordinator)
         }
     }
 }

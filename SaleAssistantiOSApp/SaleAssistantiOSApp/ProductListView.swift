@@ -12,7 +12,7 @@ struct ProductListView: View {
     @ObservedObject var viewModel: ProductViewModel
     let onLogout: () -> Void
     let onSelect: (ProductViewModel.Item) -> Void
-
+    
     var body: some View {
         NavigationStack {
             List(viewModel.items) { item in
@@ -44,7 +44,7 @@ struct ProductListView: View {
             }
         }
     }
-
+    
     @ViewBuilder
     private var overlayContent: some View {
         if viewModel.isLoading && viewModel.items.isEmpty {
@@ -57,21 +57,22 @@ struct ProductListView: View {
     }
 }
 
+
 #Preview {
-    ProductListView(viewModel: ProductViewModel(productsLoader: PreviewProductsLoader(),
-                                               salesLoader: PreviewSalesLoader()),
-                    onLogout: {},
-                    onSelect: { _ in })
-}
-
-private final class PreviewProductsLoader: ProductsLoading {
-    func loadProducts() async throws -> [Product] {
-        [Product(id: UUID().uuidString, name: "Example Product")]
+    class PreviewProductsLoader: ProductsLoading {
+        func loadProducts() async throws -> [Product] {
+            [Product(id: UUID().uuidString, name: "Example Product")]
+        }
     }
-}
-
-private final class PreviewSalesLoader: SalesLoading {
-    func loadSales() async throws -> [Sale] {
-        []
+    
+    class PreviewSalesLoader: SalesLoading {
+        func loadSales() async throws -> [Sale] {
+            []
+        }
     }
+    
+    return ProductListView(viewModel: ProductViewModel(productsLoader: PreviewProductsLoader(),
+                                                       salesLoader: PreviewSalesLoader()),
+                           onLogout: {},
+                           onSelect: { _ in })
 }

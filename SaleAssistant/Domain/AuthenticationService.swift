@@ -36,7 +36,6 @@ public final class AuthenticationService: RefreshTokenRetriever, Authenticating 
     }
     
     public func authenticate(with credentials: Credentials) async throws -> AccessToken {
-        print(credentials.login, credentials.password)
         let request = try makeAuthorizationRequest(with: credentials)
         let payload = try await send(request: request)
         let accessToken = try decodeAccessToken(from: payload.data)
@@ -64,11 +63,7 @@ public final class AuthenticationService: RefreshTokenRetriever, Authenticating 
     
     private func send(request: URLRequest) async throws -> (data: Data, response: HTTPURLResponse) {
         do {
-            print(request.httpBody)
-            print(request.httpMethod)
-            print(request.url)
             let payload = try await client.perform(request: request)
-            print(payload.response.statusCode)
             guard payload.response.statusCode == 200 else {
                 throw Error.invalidData
             }

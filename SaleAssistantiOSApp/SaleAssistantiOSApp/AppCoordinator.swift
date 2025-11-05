@@ -11,12 +11,14 @@ import SaleAssistant
 
 @MainActor
 final class AppCoordinator: ObservableObject {
-    enum Route {
+    enum Route: Equatable {
         case login
         case productList
+        case product(ProductViewModel.Item)
     }
 
     @Published private(set) var route: Route = .login
+    @Published var path: [ProductViewModel.Item] = []
 
     private let dependencies: Dependencies
     private lazy var loginViewModel = dependencies.loginViewModel
@@ -28,10 +30,21 @@ final class AppCoordinator: ObservableObject {
 
     func showLogin() {
         route = .login
+        path.removeAll()
     }
 
     func showProducts() {
         route = .productList
+        path.removeAll()
+    }
+
+    func showDetail(for item: ProductViewModel.Item) {
+        if route != .productList {
+            showProducts()
+        }
+        if !path.contains(item) {
+            path.append(item)
+        }
     }
 
     func logout() {
@@ -48,10 +61,16 @@ final class AppCoordinator: ObservableObject {
         case .productList:
             ProductListView(viewModel: productViewModel,
                             onLogout: { [weak self] in self?.logout() },
-                            onSelect: { _ in })
+                            onSelect: { [weak self] item in self?.showDetail(for: item) })
+        case .product(let item):
+            destination(for: item)
         }
+    
     }
 
+    func destination(for item: ProductViewModel.Item) -> some View {
+        ProductDetailView(viewModel: dependencies.makeProductDetailViewModel(for: Product(id: item.id, name: item.name)))
+    }
 }
 
 struct AppCoordinatorView: View {
@@ -62,7 +81,12 @@ struct AppCoordinatorView: View {
     }
 
     var body: some View {
-        coordinator.viewForCurrentRoute()
-            .animation(.default, value: coordinator.route)
+        NavigationStack(path: $coordinator.path) {
+            coordinator.viewForCurrentRoute()
+                .animation(.default, value: coordinator.route)
+                .navigationDestination(for: ProductViewModel.Item.self) { item in
+                    coordinator.destination(for: item)
+                }
+        }
     }
 }
