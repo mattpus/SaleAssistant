@@ -51,9 +51,14 @@ public final class ProductsService: ProductsLoading {
     }
 }
 
-public struct Product {
-    let id: String
-    let name: String
+public struct Product: Decodable, Identifiable {
+    public let id: String
+    public let name: String
+
+    public init(id: String, name: String) {
+        self.id = id
+        self.name = name
+    }
 }
 
 private struct ProductDTO: Decodable {

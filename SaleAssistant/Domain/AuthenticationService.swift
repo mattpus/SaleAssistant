@@ -36,6 +36,7 @@ public final class AuthenticationService: RefreshTokenRetriever, Authenticating 
     }
     
     public func authenticate(with credentials: Credentials) async throws -> AccessToken {
+        print(credentials.login, credentials.password)
         let request = try makeAuthorizationRequest(with: credentials)
         let payload = try await send(request: request)
         let accessToken = try decodeAccessToken(from: payload.data)
@@ -46,7 +47,7 @@ public final class AuthenticationService: RefreshTokenRetriever, Authenticating 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
+    
         let body = [
             "username": credentials.login,
             "password": credentials.password
@@ -63,11 +64,17 @@ public final class AuthenticationService: RefreshTokenRetriever, Authenticating 
     
     private func send(request: URLRequest) async throws -> (data: Data, response: HTTPURLResponse) {
         do {
+            print(request.httpBody)
+            print(request.httpMethod)
+            print(request.url)
             let payload = try await client.perform(request: request)
+            print(payload.response.statusCode)
             guard payload.response.statusCode == 200 else {
                 throw Error.invalidData
             }
             return payload
+        } catch let error as AuthenticationService.Error {
+            throw error
         } catch {
             throw Error.connectivity
         }
@@ -76,7 +83,8 @@ public final class AuthenticationService: RefreshTokenRetriever, Authenticating 
     private func decodeAccessToken(from data: Data) throws -> AccessToken {
         do {
             // TODO: double check what actually we get from the data, i dont think it is really an accessToken object just string probably
-            return try decoder.decode(AccessToken.self, from: data)
+            let result = try decoder.decode(AccessTokenDTO.self, from: data)
+            return result.model
         } catch {
             throw Error.invalidData
         }
@@ -90,4 +98,22 @@ public final class AuthenticationService: RefreshTokenRetriever, Authenticating 
             throw error
         }
     }
+}
+
+private struct AccessTokenDTO: Decodable {
+    let accessToken: String
+    
+    enum CodingKeys: String, CodingKey {
+        case accessToken = "access_token"
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        accessToken = try container.decode(String.self, forKey: .accessToken)
+    }
+    
+    var model: AccessToken {
+        AccessToken(value: accessToken, expirationDate: Date().advanced(by: 80000))
+    }
+    
 }

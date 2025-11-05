@@ -14,7 +14,7 @@ final class LoginViewModelTests: XCTestCase {
     func test_login_requestsAuthorizationWithProvidedCredentials() async {
         let (sut, authenticator, _) = makeSUT()
 
-        await sut.login(username: "user", password: "pass")
+        _ = await sut.login(username: "user", password: "pass")
 
         XCTAssertEqual(authenticator.receivedCredentials?.login, "user")
         XCTAssertEqual(authenticator.receivedCredentials?.password, "pass")
@@ -23,7 +23,7 @@ final class LoginViewModelTests: XCTestCase {
     func test_login_requestsProductsAfterSuccessfulAuthorization() async {
         let (sut, _, productsLoader) = makeSUT()
 
-        await sut.login(username: "user", password: "pass")
+        _ = await sut.login(username: "user", password: "pass")
 
         XCTAssertEqual(productsLoader.loadCallCount, 1)
     }
@@ -31,7 +31,9 @@ final class LoginViewModelTests: XCTestCase {
     func test_login_doesNotRequestProductsWhenAuthorizationFails() async {
         let (sut, authenticator, productsLoader) = makeSUT(authResult: .failure(anyNSError()))
 
-        await sut.login(username: "user", password: "pass")
+        let success = await sut.login(username: "user", password: "pass")
+
+        XCTAssertTrue(success)
 
         XCTAssertEqual(productsLoader.loadCallCount, 0)
         XCTAssertEqual(authenticator.receivedCredentials?.login, "user")
@@ -55,23 +57,25 @@ final class LoginViewModelTests: XCTestCase {
         let expectedError = anyNSError()
         let (sut, _, _) = makeSUT(authResult: .failure(expectedError))
 
-        await sut.login(username: "user", password: "pass")
+        let success = await sut.login(username: "user", password: "pass")
 
         XCTAssertEqual(sut.products.count, 0)
         XCTAssertEqual(sut.error as NSError?, expectedError)
         XCTAssertFalse(sut.isLoading)
+        XCTAssertFalse(success)
     }
 
     func test_login_setsErrorWhenLoadingProductsFails() async {
         let expectedError = anyNSError()
         let (sut, _, productsLoader) = makeSUT(productsResult: .failure(expectedError))
 
-        await sut.login(username: "user", password: "pass")
+        let success = await sut.login(username: "user", password: "pass")
 
         XCTAssertEqual(productsLoader.loadCallCount, 1)
         XCTAssertEqual(sut.products.count, 0)
         XCTAssertEqual(sut.error as NSError?, expectedError)
         XCTAssertFalse(sut.isLoading)
+        XCTAssertFalse(success)
     }
 
     // MARK: - Helpers

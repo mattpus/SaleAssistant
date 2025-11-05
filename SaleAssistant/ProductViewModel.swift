@@ -72,11 +72,13 @@ public final class ProductViewModel: ObservableObject {
             partialResult[sale.productID, default: 0] += 1
         }
 
-        return products.map { product in
-            Item(id: product.id,
-                 name: product.name,
-                 salesCount: counts[product.id] ?? 0)
-        }
+        return products
+            .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+            .map { product in
+                Item(id: product.id,
+                     name: product.name,
+                     salesCount: counts[product.id] ?? 0)
+            }
     }
 
     private func handle(error: Swift.Error) {

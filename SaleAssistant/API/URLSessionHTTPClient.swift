@@ -15,10 +15,9 @@ public final class URLSessionHTTPClient: HTTPClient {
         self.session = session
     }
 
-    /// Sends a GET request and returns the response payload and HTTP metadata.
+    /// Sends the provided request and returns the response payload and HTTP metadata.
     public func perform(request: URLRequest) async throws -> (data: Data, response: HTTPURLResponse) {
-        let (data, response) = try await session.data(from:
-                                                        request.url!)
+        let (data, response) = try await session.data(for: request)
         guard let httpResponse = response as? HTTPURLResponse else {
             throw Error.invalidResponse
         }

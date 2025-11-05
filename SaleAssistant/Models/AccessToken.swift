@@ -8,9 +8,15 @@
 import Foundation 
 
 public struct AccessToken: Decodable, Equatable {
-    let value: String
-    let expirationDate: Date
-    var isValid: Bool {
+    public let value: String
+    public let expirationDate: Date
+
+    public init(value: String, expirationDate: Date) {
+        self.value = value
+        self.expirationDate = expirationDate
+    }
+
+    public var isValid: Bool {
         expirationDate > Date()
     }
 }

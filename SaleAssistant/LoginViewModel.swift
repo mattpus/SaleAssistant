@@ -22,7 +22,8 @@ public final class LoginViewModel: ObservableObject {
         self.productsLoader = productsLoader
     }
 
-    public func login(username: String, password: String) async {
+    @discardableResult
+    public func login(username: String, password: String) async -> Bool {
         isLoading = true
         error = nil
 
@@ -32,9 +33,11 @@ public final class LoginViewModel: ObservableObject {
             _ = try await authenticator.authenticate(with: Credentials(login: username, password: password))
             let loadedProducts = try await productsLoader.loadProducts()
             products = loadedProducts
+            return true
         } catch {
             products = []
             self.error = error
+            return false
         }
     }
 }

@@ -51,11 +51,20 @@ public final class SalesService: SalesLoading {
     }
 }
 
-public struct Sale {
-    let productID: String
-    let currencyCode: String
-    let amount: Decimal
-    let date: Date
+public struct Sale: Identifiable {
+    public let id: UUID
+    public let productID: String
+    public let currencyCode: String
+    public let amount: Decimal
+    public let date: Date
+
+    public init(id: UUID = UUID(), productID: String, currencyCode: String, amount: Decimal, date: Date) {
+        self.id = id
+        self.productID = productID
+        self.currencyCode = currencyCode
+        self.amount = amount
+        self.date = date
+    }
 }
 
 private struct SaleDTO: Decodable {
