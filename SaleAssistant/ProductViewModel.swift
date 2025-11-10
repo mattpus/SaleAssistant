@@ -55,11 +55,8 @@ public final class ProductViewModel: ObservableObject {
         defer { isLoading = false }
 
         do {
-            async let productsTask = productsLoader.loadProducts()
-            async let salesTask = salesLoader.loadSales()
-
-            let products = try await productsTask
-            let sales = try await salesTask
+            let products = try await productsLoader.loadProducts()
+            let sales = try await salesLoader.loadSales()
             items = makeItems(products: products, sales: sales)
         } catch {
             items = []

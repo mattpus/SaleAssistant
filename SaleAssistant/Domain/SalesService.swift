@@ -51,7 +51,7 @@ public final class SalesService: SalesLoading {
     }
 }
 
-public struct Sale: Identifiable {
+public struct Sale: Identifiable, Sendable {
     public let id: UUID
     public let productID: String
     public let currencyCode: String
@@ -67,12 +67,8 @@ public struct Sale: Identifiable {
     }
 }
 
-private struct SaleDTO: Decodable {
-    private static let iso8601Formatter: ISO8601DateFormatter = {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return formatter
-    }()
+private struct SaleDTO: Decodable, Sendable {
+    
     let productID: String
     let currencyCode: String
     let amount: Decimal
@@ -90,7 +86,7 @@ private struct SaleDTO: Decodable {
         productID = try container.decode(String.self, forKey: .productID)
         currencyCode = try container.decode(String.self, forKey: .currencyCode)
         let dateString = try container.decode(String.self, forKey: .date)
-        guard let parsedDate = SaleDTO.iso8601Formatter.date(from: dateString) else {
+        guard let parsedDate = Formatters.iso8601Formatter.date(from: dateString) else {
             throw DecodingError.dataCorruptedError(forKey: .date,
                                                    in: container,
                                                    debugDescription: "Invalid date format")
@@ -111,5 +107,13 @@ private struct SaleDTO: Decodable {
              currencyCode: currencyCode,
              amount: amount,
              date: date)
+    }
+}
+
+enum Formatters {
+    static var iso8601Formatter: ISO8601DateFormatter {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
     }
 }

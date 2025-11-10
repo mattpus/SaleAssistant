@@ -9,6 +9,14 @@ import SwiftUI
 import Combine
 import SaleAssistant
 
+protocol AppCoordinatorDependencies {
+    var loginViewModel: LoginViewModel { get }
+    var productViewModel: ProductViewModel { get }
+    func makeProductDetailViewModel(for product: Product) -> ProductDetailViewModel
+    func resetSession()
+    func hasValidStoredToken() async -> Bool
+}
+
 @MainActor
 final class AppCoordinator: ObservableObject {
     enum Route {
@@ -24,12 +32,12 @@ final class AppCoordinator: ObservableObject {
     @Published private(set) var route: Route = .idle
     @Published var path: [Destination] = []
 
-    private let dependencies: Dependencies
+    private let dependencies: AppCoordinatorDependencies
     private lazy var loginViewModel = dependencies.loginViewModel
     private lazy var productViewModel = dependencies.productViewModel
     private var hasEvaluatedStoredToken = false
 
-    init(dependencies: Dependencies) {
+    init(dependencies: AppCoordinatorDependencies) {
         self.dependencies = dependencies
         Task {
          
@@ -96,7 +104,7 @@ final class AppCoordinator: ObservableObject {
                           onSessionExpired: { [weak self] in self?.logout() })
     }
 
-    private func evaluateStoredTokenIfNeeded() async {
+    func evaluateStoredTokenIfNeeded() async {
         guard !hasEvaluatedStoredToken else { return }
         hasEvaluatedStoredToken = true
         let hasValidToken = await dependencies.hasValidStoredToken()
@@ -107,6 +115,8 @@ final class AppCoordinator: ObservableObject {
         }
     }
 }
+
+extension Dependencies: AppCoordinatorDependencies {}
 
 struct AppCoordinatorView: View {
     @StateObject private var coordinator: AppCoordinator

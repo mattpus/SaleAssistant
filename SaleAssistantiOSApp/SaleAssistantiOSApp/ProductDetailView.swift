@@ -14,6 +14,14 @@ struct ProductDetailView: View {
 
     var body: some View {
         List {
+            if let message = errorMessage {
+                Section {
+                    Label(message, systemImage: "exclamationmark.triangle")
+                        .foregroundStyle(.red)
+                        .font(.subheadline)
+                }
+            }
+
             Section(header: Text("Summary")) {
                 LabeledContent("Total sales", value: "\(viewModel.salesCount)")
                 LabeledContent("Total (USD)", value: viewModel.totalSalesUSD.formatted(.currency(code: "USD")))
@@ -49,6 +57,20 @@ struct ProductDetailView: View {
                 onSessionExpired()
             }
         }
+    }
+
+    private var errorMessage: String? {
+        guard let error = viewModel.error else { return nil }
+
+        if let ratesError = error as? RatesService.Error, case .connectivity = ratesError {
+            return "We can't reach the /rates service. Please start the backend service and try again."
+        }
+
+        if let localized = error as? LocalizedError, let description = localized.errorDescription {
+            return description
+        }
+
+        return String(describing: error)
     }
 }
 

@@ -51,7 +51,7 @@ public final class ProductsService: ProductsLoading {
     }
 }
 
-public struct Product: Decodable, Identifiable {
+public struct Product: Decodable, Identifiable, Sendable {
     public let id: String
     public let name: String
 

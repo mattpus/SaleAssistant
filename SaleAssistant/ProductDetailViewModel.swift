@@ -74,11 +74,8 @@ public final class ProductDetailViewModel: ObservableObject {
         defer { isLoading = false }
 
         do {
-            async let salesTask = salesLoader.loadSales()
-            async let ratesTask = ratesLoader.loadRates()
-
-            let allSales = try await salesTask
-            let rates = try await ratesTask
+            let allSales = try await salesLoader.loadSales()
+            let rates = try await ratesLoader.loadRates()
 
             let productSales = allSales.filter { $0.productID == product.id }
             let (items, totalUSD) = try makeItems(from: productSales, rates: rates)

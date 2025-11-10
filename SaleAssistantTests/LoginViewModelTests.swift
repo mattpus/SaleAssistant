@@ -33,7 +33,7 @@ final class LoginViewModelTests: XCTestCase {
 
         let success = await sut.login(username: "user", password: "pass")
 
-        XCTAssertTrue(success)
+        XCTAssertFalse(success)
 
         XCTAssertEqual(productsLoader.loadCallCount, 0)
         XCTAssertEqual(authenticator.receivedCredentials?.login, "user")

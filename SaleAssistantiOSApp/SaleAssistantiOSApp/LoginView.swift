@@ -12,8 +12,8 @@ struct LoginView: View {
     @ObservedObject var viewModel: LoginViewModel
     let onSuccess: () -> Void
     
-    @State private var username = "tester"
-    @State private var password = "password"
+    @State private var username = ""
+    @State private var password = ""
     
     var body: some View {
         Form {
