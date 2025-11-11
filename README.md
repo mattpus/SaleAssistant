@@ -73,8 +73,10 @@ git clone https://github.com/<your-org>/SaleAssistant.git
 cd SaleAssistant
 ```
 
-### 2. Start the backend middleware
-The iOS app expects a local rates endpoint at `http://localhost:8080/rates`. Run the Go service before launching the app or its tests.
+### 2. Backend middleware
+The backend middleware is deployed in the cloud at `https://saleassistant.onrender.com/rates`. No local setup is required.
+
+For local development, you can still run the Go service locally:
 
 ```bash
 cd backend
@@ -90,7 +92,7 @@ Environment overrides:
 1. Launch Xcode and open `SaleAssistantApp.xcworkspace` (this includes both the app and shared package targets).  
 2. Select the `SaleAssistantiOSApp` scheme and your preferred iOS 17+ simulator or device.
 3. Hit **Run**. The coordinator boots into a loading state, validates any stored token, then presents login/products as appropriate.
-4. use login **tester** and password **password** for testing.
+4. Use login **tester** and password **password** for testing.
 
 ## How It Works
 - `LoginViewModel` authenticates via `AuthenticationService` (POST `/login`), stores tokens in `KeychainTokenStore`, and preloads products upon success.
@@ -100,9 +102,9 @@ Environment overrides:
 - `Dependencies` wires everything together, ensuring the `RatesService` points to the local middleware (so keep the Go server running).
 
 ## Troubleshooting
-- **Rates errors / missing totals:** Ensure the Go middleware is running and reachable at `http://localhost:8080/rates`. The detail screen will show a connectivity warning otherwise.
+- **Rates errors / missing totals:** The app uses the cloud-deployed middleware at `https://saleassistant.onrender.com/rates`. If you see connectivity issues, check your internet connection or try running the local middleware for development.
 - **Auth failures:** The public Essential Developer endpoints require valid demo credentials; double-check username/password.
 - **Simulator build issues:** Clean derived data (`Shift+⌘+K`) and confirm the destination matches your installed SDKs.
-- **Backend port conflicts:** Override `LISTEN_ADDR`, for example `LISTEN_ADDR=":9090" go run ./cmd/server`, then update `ratesURL` in `Dependencies` (or add a runtime configuration) to match.
+- **Local development:** For local backend development, override `LISTEN_ADDR` (e.g., `LISTEN_ADDR=":9090" go run ./cmd/server`) and update `ratesURL` in `Dependencies` to point to your local instance.
 
-With the backend running, Go installed, and the workspace opened in Xcode, you can iterate on the SwiftUI client, extend the domain module, or evolve the Go middleware confidently with the provided unit tests. Happy hacking!
+With the cloud backend deployed and the workspace opened in Xcode, you can iterate on the SwiftUI client, extend the domain module, or evolve the Go middleware confidently with the provided unit tests. Happy hacking!
