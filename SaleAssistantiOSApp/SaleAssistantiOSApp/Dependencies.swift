@@ -67,7 +67,7 @@ final class Dependencies: ObservableObject {
          authenticationURL: URL = URL(string: "https://ile-b2p4.essentialdeveloper.com/login")!,
          productsURL: URL = URL(string: "https://ile-b2p4.essentialdeveloper.com/products")!,
          salesURL: URL = URL(string: "https://ile-b2p4.essentialdeveloper.com/sales")!,
-         ratesURL: URL = URL(string: "http://localhost:8080/rates")!) {
+         ratesURL: URL = URL(string: "https://saleassistant.onrender.com/rates")!) {
         self.baseClient = client
         self.authenticationURL = authenticationURL
         self.productsURL = productsURL
