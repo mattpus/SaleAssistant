@@ -8,12 +8,23 @@
 import Foundation
 
 public final class TokenService: TokenProvider {
+    
+    public enum Error: Swift.Error, Equatable {
+        case invalidToken
+        case failedRetrievingToken
+        
+        var message: String {
+            switch self {
+            case .invalidToken: return "The token is invalid"
+            case .failedRetrievingToken: return "We failed retrieve token. Please try again."
+            }
+        }
+    }
+    
     private let tokenLoader: TokenLoader
-    private let refreshTokenRetriever: RefreshTokenRetriever
 
-    public init(tokenLoader: TokenLoader, refreshTokenRetriever: RefreshTokenRetriever) {
+    public init(tokenLoader: TokenLoader) {
         self.tokenLoader = tokenLoader
-        self.refreshTokenRetriever = refreshTokenRetriever
     }
 
     public func getToken() async throws -> String {
@@ -22,12 +33,11 @@ public final class TokenService: TokenProvider {
         switch result {
         case .success(let accessToken):
             guard accessToken.isValid else {
-                let newAccessToken = try await refreshTokenRetriever.refreshToken()
-                return newAccessToken
+                throw Error.invalidToken
             }
             return accessToken.value
-        case .failure(let error):
-            throw error
+        case .failure:
+            throw Error.failedRetrievingToken
         }
     }
 }

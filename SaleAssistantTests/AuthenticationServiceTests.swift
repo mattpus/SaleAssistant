@@ -107,17 +107,6 @@ final class AuthenticationServiceTests: XCTestCase {
         }
     }
 
-    func test_refreshToken_returnsValueFromAuthenticate() async throws {
-        let expectedToken = "refreshed-token"
-        let accessToken = AccessToken(value: expectedToken, expirationDate: Date().addingTimeInterval(180))
-        let (sut, client, _) = makeSUT()
-        client.stubAuthenticatedResult(with: makeAccessTokenData(for: accessToken))
-
-        let token = try await sut.refreshToken()
-
-        XCTAssertEqual(token, expectedToken)
-    }
-
     func test_authenticate_savesTokenUsingTokenSaver() async throws {
         let token = AccessToken(value: "token", expirationDate: Date().addingTimeInterval(180))
         let (sut, client, tokenSaver) = makeSUT()

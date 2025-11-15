@@ -13,67 +13,50 @@ final class TokenServiceTests: XCTestCase {
     func test_getToken_deliversCachedTokenWhenValid() async throws {
         let token = AccessToken(value: "token", expirationDate: Date().addingTimeInterval(3600))
         let loader = TokenLoaderStub(result: .success(token))
-        let refreshSpy = RefreshTokenRetrieverSpy()
-        let sut = makeSUT(loader: loader, refreshTokenRetriever: refreshSpy)
+        let sut = makeSUT(loader: loader)
 
         let receivedToken = try await sut.getToken()
 
         XCTAssertEqual(receivedToken, token.value)
-        XCTAssertEqual(refreshSpy.refreshCallCount, 0)
-    }
-
-    func test_getToken_refreshesTokenWhenCachedTokenIsExpired() async throws {
-        let expiredToken = AccessToken(value: "expired", expirationDate: Date().addingTimeInterval(-10))
-        let loader = TokenLoaderStub(result: .success(expiredToken))
-        let refreshSpy = RefreshTokenRetrieverSpy(result: .success("new-token"))
-        let sut = makeSUT(loader: loader, refreshTokenRetriever: refreshSpy)
-
-        let receivedToken = try await sut.getToken()
-
-        XCTAssertEqual(receivedToken, "new-token")
-        XCTAssertEqual(refreshSpy.refreshCallCount, 1)
     }
 
     func test_getToken_rethrowsLoaderError() async {
-        let expectedError = anyNSError()
-        let loader = TokenLoaderStub(result: .failure(expectedError))
-        let refreshSpy = RefreshTokenRetrieverSpy()
-        let sut = makeSUT(loader: loader, refreshTokenRetriever: refreshSpy)
+        let loader = TokenLoaderStub(result: .failure(anyNSError()))
+        let sut = makeSUT(loader: loader)
 
         do {
             _ = try await sut.getToken()
             XCTFail("Expected to throw, got success instead")
+        } catch let error as TokenService.Error {
+            XCTAssertEqual(error, .failedRetrievingToken)
         } catch {
-            XCTAssertEqual(error as NSError, expectedError)
+            XCTFail("Expected TokenService.Error.failedRetrievingToken, got \(error)")
         }
     }
 
     func test_getToken_propagatesRefreshError() async {
         let expiredToken = AccessToken(value: "expired", expirationDate: Date().addingTimeInterval(-10))
         let loader = TokenLoaderStub(result: .success(expiredToken))
-        let expectedError = anyNSError()
-        let refreshSpy = RefreshTokenRetrieverSpy(result: .failure(expectedError))
-        let sut = makeSUT(loader: loader, refreshTokenRetriever: refreshSpy)
+        let sut = makeSUT(loader: loader)
 
         do {
             _ = try await sut.getToken()
             XCTFail("Expected to throw, got success instead")
+        } catch let error as TokenService.Error {
+            XCTAssertEqual(error, .invalidToken)
         } catch {
-            XCTAssertEqual(error as NSError, expectedError)
+            XCTFail("Expected TokenService.Error.invalidToken, got \(error)")
         }
-        XCTAssertEqual(refreshSpy.refreshCallCount, 1)
     }
 
     // MARK: - Helpers
 
     private func makeSUT(loader: TokenLoader,
-                         refreshTokenRetriever: RefreshTokenRetriever,
                          file: StaticString = #filePath,
                          line: UInt = #line) -> TokenService {
-        let sut = TokenService(tokenLoader: loader, refreshTokenRetriever: refreshTokenRetriever)
+        let sut = TokenService(tokenLoader: loader)
         trackForMemoryLeaks(sut, file: file, line: line)
         trackForMemoryLeaks(loader as AnyObject, file: file, line: line)
-        trackForMemoryLeaks(refreshTokenRetriever as AnyObject, file: file, line: line)
         return sut
     }
 
@@ -86,25 +69,6 @@ final class TokenServiceTests: XCTestCase {
 
         func load() async -> Result<AccessToken, Swift.Error> {
             result
-        }
-    }
-
-    private final class RefreshTokenRetrieverSpy: RefreshTokenRetriever {
-        private let result: Result<String, NSError>
-        private(set) var refreshCallCount = 0
-
-        init(result: Result<String, NSError> = .success("unused-token")) {
-            self.result = result
-        }
-
-        func refreshToken() async throws -> String {
-            refreshCallCount += 1
-            switch result {
-            case let .success(token):
-                return token
-            case let .failure(error):
-                throw error
-            }
         }
     }
 }

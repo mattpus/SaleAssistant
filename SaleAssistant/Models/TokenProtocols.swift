@@ -9,10 +9,6 @@ public protocol TokenProvider: AnyObject {
     func getToken() async throws -> String
 }
 
-public protocol RefreshTokenRetriever: AnyObject {
-    func refreshToken() async throws -> String
-}
-
 public protocol TokenSaver: AnyObject {
      func save(token: AccessToken) async -> Result<Void, Swift.Error>
 }

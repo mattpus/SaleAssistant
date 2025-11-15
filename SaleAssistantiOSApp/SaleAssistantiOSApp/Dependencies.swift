@@ -33,8 +33,7 @@ final class Dependencies: ObservableObject {
     }()
 
     private lazy var tokenProvider: TokenProvider = {
-        TokenService(tokenLoader: tokenStore,
-                     refreshTokenRetriever: authenticationService)
+        TokenService(tokenLoader: tokenStore)
     }()
 
     private lazy var authenticatedClient: HTTPClient = {
