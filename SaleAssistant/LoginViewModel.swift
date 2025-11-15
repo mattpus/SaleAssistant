@@ -10,6 +10,11 @@ import Foundation
 
 @MainActor
 public final class LoginViewModel: ObservableObject {
+    struct UserFacingError: LocalizedError, Equatable {
+        let message: String
+        var errorDescription: String? { message }
+    }
+
     @Published public private(set) var isLoading = false
     @Published public private(set) var products: [Product] = []
     @Published public private(set) var error: Error?
@@ -36,8 +41,20 @@ public final class LoginViewModel: ObservableObject {
             return true
         } catch {
             products = []
-            self.error = error
+            self.error = makeUserFacingError(from: error)
             return false
         }
+    }
+
+    private func makeUserFacingError(from error: Swift.Error) -> Error {
+        if let authError = error as? AuthenticationService.Error {
+            return UserFacingError(message: authError.message)
+        }
+
+        if let productsError = error as? ProductsService.Error {
+            return UserFacingError(message: productsError.message)
+        }
+
+        return UserFacingError(message: "Something went wrong. Please try again.")
     }
 }

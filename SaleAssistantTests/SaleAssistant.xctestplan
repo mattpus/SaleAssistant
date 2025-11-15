@@ -1,0 +1,25 @@
+{
+  "configurations" : [
+    {
+      "id" : "457EBF9F-A0CF-4F03-B091-A373F3BBD403",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "performanceAntipatternCheckerEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:SaleAssistant.xcodeproj",
+        "identifier" : "C931F99C2EB92262009B5907",
+        "name" : "SaleAssistantTests"
+      }
+    }
+  ],
+  "version" : 1
+}

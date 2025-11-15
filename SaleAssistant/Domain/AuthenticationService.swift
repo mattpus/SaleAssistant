@@ -12,6 +12,13 @@ public final class AuthenticationService: RefreshTokenRetriever, Authenticating 
     public enum Error: Swift.Error, Equatable {
         case connectivity
         case invalidData
+        
+        var message: String {
+            switch self {
+            case .connectivity: return "No internet connection."
+            case .invalidData: return "We couldn't verify your username or password. Please try again."
+            }
+        }
     }
     
     private let url: URL

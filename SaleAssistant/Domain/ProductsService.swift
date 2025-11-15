@@ -13,6 +13,14 @@ public final class ProductsService: ProductsLoading {
         case connectivity
         case invalidData
         case unauthorized
+        
+        var message: String {
+            switch self {
+            case .connectivity: return "No internet connection."
+            case .invalidData: return "We recieved invalid data when loading products. Please try again."
+            case .unauthorized: return "You are not allowed to view this content. Please login first."
+            }
+        }
     }
 
     private let url: URL

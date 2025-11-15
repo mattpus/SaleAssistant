@@ -39,9 +39,6 @@ final class AppCoordinator: ObservableObject {
 
     init(dependencies: AppCoordinatorDependencies) {
         self.dependencies = dependencies
-        Task {
-         
-        }
     }
 
     func showLogin() {

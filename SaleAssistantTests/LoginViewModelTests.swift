@@ -54,34 +54,32 @@ final class LoginViewModelTests: XCTestCase {
     }
 
     func test_login_setsErrorWhenAuthorizationFails() async {
-        let expectedError = anyNSError()
-        let (sut, _, _) = makeSUT(authResult: .failure(expectedError))
+        let (sut, _, _) = makeSUT(authResult: .failure(AuthenticationService.Error.invalidData))
 
         let success = await sut.login(username: "user", password: "pass")
 
         XCTAssertEqual(sut.products.count, 0)
-        XCTAssertEqual(sut.error as NSError?, expectedError)
+        XCTAssertEqual(userFacingErrorMessage(from: sut), "We couldn't verify your username or password. Please try again.")
         XCTAssertFalse(sut.isLoading)
         XCTAssertFalse(success)
     }
 
     func test_login_setsErrorWhenLoadingProductsFails() async {
-        let expectedError = anyNSError()
-        let (sut, _, productsLoader) = makeSUT(productsResult: .failure(expectedError))
+        let (sut, _, productsLoader) = makeSUT(productsResult: .failure(ProductsService.Error.connectivity))
 
         let success = await sut.login(username: "user", password: "pass")
 
         XCTAssertEqual(productsLoader.loadCallCount, 1)
         XCTAssertEqual(sut.products.count, 0)
-        XCTAssertEqual(sut.error as NSError?, expectedError)
+        XCTAssertEqual(userFacingErrorMessage(from: sut), ProductsService.Error.connectivity.message)
         XCTAssertFalse(sut.isLoading)
         XCTAssertFalse(success)
     }
 
     // MARK: - Helpers
 
-    private func makeSUT(authResult: Result<AccessToken, NSError>? = nil,
-                         productsResult: Result<[Product], NSError> = .success([]),
+    private func makeSUT(authResult: Result<AccessToken, Swift.Error>? = nil,
+                         productsResult: Result<[Product], Swift.Error> = .success([]),
                          file: StaticString = #filePath,
                          line: UInt = #line) -> (LoginViewModel, AuthenticatingSpy, ProductsLoadingSpy) {
         let authenticator = AuthenticatingSpy(result: authResult ?? .success(makeAccessToken()))
@@ -99,10 +97,10 @@ final class LoginViewModelTests: XCTestCase {
     }
 
     private final class AuthenticatingSpy: Authenticating {
-        private let result: Result<AccessToken, NSError>
+        private let result: Result<AccessToken, Swift.Error>
         private(set) var receivedCredentials: Credentials?
 
-        init(result: Result<AccessToken, NSError>) {
+        init(result: Result<AccessToken, Swift.Error>) {
             self.result = result
         }
 
@@ -118,10 +116,10 @@ final class LoginViewModelTests: XCTestCase {
     }
 
     private final class ProductsLoadingSpy: ProductsLoading {
-        private let result: Result<[Product], NSError>
+        private let result: Result<[Product], Swift.Error>
         private(set) var loadCallCount = 0
 
-        init(result: Result<[Product], NSError>) {
+        init(result: Result<[Product], Swift.Error>) {
             self.result = result
         }
 
@@ -134,5 +132,9 @@ final class LoginViewModelTests: XCTestCase {
                 throw error
             }
         }
+    }
+
+    private func userFacingErrorMessage(from sut: LoginViewModel) -> String? {
+        (sut.error as? LoginViewModel.UserFacingError)?.message
     }
 }
