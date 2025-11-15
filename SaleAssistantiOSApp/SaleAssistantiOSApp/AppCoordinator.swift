@@ -91,7 +91,6 @@ final class AppCoordinator: ObservableObject {
 
     private func productListView() -> some View {
         ProductListView(viewModel: productViewModel,
-                        onLogout: { [weak self] in self?.logout() },
                         onSelect: { [weak self] item in self?.showDetail(for: item) },
                         onSessionExpired: { [weak self] in self?.logout() })
     }

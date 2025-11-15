@@ -13,6 +13,31 @@ struct ProductDetailView: View {
     let onSessionExpired: () -> Void
 
     var body: some View {
+        Group {
+            if viewModel.isLoading {
+                ProgressView("Loading product details…")
+                    .progressViewStyle(.circular)
+                    .tint(.accentColor)
+            } else {
+                detailContent
+            }
+        }
+        .navigationTitle(viewModel.productName)
+        .task {
+            await viewModel.load()
+        }
+        .refreshable {
+            await viewModel.load()
+        }
+        .onChange(of: viewModel.sessionExpired) { _, expired in
+            if expired {
+                onSessionExpired()
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var detailContent: some View {
         List {
             if let message = errorMessage {
                 Section {
@@ -45,25 +70,13 @@ struct ProductDetailView: View {
                 }
             }
         }
-        .navigationTitle(viewModel.productName)
-        .task {
-            await viewModel.load()
-        }
-        .refreshable {
-            await viewModel.load()
-        }
-        .onChange(of: viewModel.sessionExpired) { _, expired in
-            if expired {
-                onSessionExpired()
-            }
-        }
     }
 
     private var errorMessage: String? {
         guard let error = viewModel.error else { return nil }
 
         if let ratesError = error as? RatesService.Error, case .connectivity = ratesError {
-            return "We can't reach the /rates service. Please start the backend service and try again."
+            return "We can't reach the /rates service. Please try again."
         }
 
         if let localized = error as? LocalizedError, let description = localized.errorDescription {

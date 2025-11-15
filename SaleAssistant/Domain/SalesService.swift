@@ -13,6 +13,17 @@ public final class SalesService: SalesLoading {
         case connectivity
         case invalidData
         case unauthorized
+        
+        var message : String {
+            switch self {
+            case .connectivity:
+                return "You're offline. Please check your internet connection and try again."
+            case .invalidData:
+                return "We couldn't process the server response. Please try again later or contact support if the issue persists."
+            case .unauthorized:
+                return "Your session has expired or you don't have access. Please sign in again to continue."
+            }
+        }
     }
 
     private let url: URL
@@ -117,3 +128,4 @@ enum Formatters {
         return formatter
     }
 }
+
