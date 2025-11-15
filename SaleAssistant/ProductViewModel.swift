@@ -82,7 +82,7 @@ public final class ProductViewModel: ObservableObject {
         if isUnauthorized(error) {
             sessionExpired = true
         }
-        self.error = error
+        self.error = makeUserFacingError(from: error)
     }
 
     private func isUnauthorized(_ error: Swift.Error) -> Bool {
@@ -95,5 +95,17 @@ public final class ProductViewModel: ObservableObject {
         }
 
         return false
+    }
+    
+    private func makeUserFacingError(from error: Swift.Error) -> Error {
+        if let productsError = error as? ProductsService.Error {
+            return UserFacingError(message: productsError.message)
+        }
+
+        if let salesError = error as? SalesService.Error {
+            return UserFacingError(message: salesError.message)
+        }
+
+        return UserFacingError(message: "Something went wrong. Please try again.")
     }
 }

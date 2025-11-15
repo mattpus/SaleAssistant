@@ -69,7 +69,7 @@ final class ProductDetailViewModelTests: XCTestCase {
 
         XCTAssertEqual(sut.salesCount, 0)
         XCTAssertEqual(sut.totalSalesUSD, 0)
-        XCTAssertEqual(sut.error as? ProductDetailViewModel.ConversionError, .missingRate(currency: "JPY"))
+        XCTAssertEqual((sut.error as? UserFacingError)?.message, "No rate available for JPY")
     }
 
     func test_load_marksSessionExpiredWhenSalesLoaderReturnsUnauthorized() async {

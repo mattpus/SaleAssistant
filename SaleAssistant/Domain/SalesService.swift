@@ -17,7 +17,7 @@ public final class SalesService: SalesLoading {
         var message : String {
             switch self {
             case .connectivity:
-                return "You're offline. Please check your internet connection and try again."
+                return "Sale service fail to fetch data. Please check your internet connection and try again."
             case .invalidData:
                 return "We couldn't process the server response. Please try again later or contact support if the issue persists."
             case .unauthorized:

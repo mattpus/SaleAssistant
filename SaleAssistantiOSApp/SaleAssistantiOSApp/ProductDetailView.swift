@@ -26,9 +26,6 @@ struct ProductDetailView: View {
         .task {
             await viewModel.load()
         }
-        .refreshable {
-            await viewModel.load()
-        }
         .onChange(of: viewModel.sessionExpired) { _, expired in
             if expired {
                 onSessionExpired()
@@ -39,7 +36,7 @@ struct ProductDetailView: View {
     @ViewBuilder
     private var detailContent: some View {
         List {
-            if let message = errorMessage {
+            if let message = viewModel.error?.localizedDescription {
                 Section {
                     Label(message, systemImage: "exclamationmark.triangle")
                         .foregroundStyle(.red)
@@ -70,20 +67,6 @@ struct ProductDetailView: View {
                 }
             }
         }
-    }
-
-    private var errorMessage: String? {
-        guard let error = viewModel.error else { return nil }
-
-        if let ratesError = error as? RatesService.Error, case .connectivity = ratesError {
-            return "We can't reach the /rates service. Please try again."
-        }
-
-        if let localized = error as? LocalizedError, let description = localized.errorDescription {
-            return description
-        }
-
-        return String(describing: error)
     }
 }
 

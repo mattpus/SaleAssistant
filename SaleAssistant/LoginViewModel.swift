@@ -10,11 +10,6 @@ import Foundation
 
 @MainActor
 public final class LoginViewModel: ObservableObject {
-    struct UserFacingError: LocalizedError, Equatable {
-        let message: String
-        var errorDescription: String? { message }
-    }
-
     @Published public private(set) var isLoading = false
     @Published public private(set) var products: [Product] = []
     @Published public private(set) var error: Error?

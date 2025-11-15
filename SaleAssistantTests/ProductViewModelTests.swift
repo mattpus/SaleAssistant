@@ -71,7 +71,7 @@ final class ProductViewModelTests: XCTestCase {
     }
 
     func test_load_setsErrorOnGeneralFailure() async {
-        let expectedError = anyNSError()
+        let expectedError = UserFacingError(message: "Something went wrong. Please try again.")
         let productsLoader = ProductsLoaderStub(result: .failure(expectedError))
         let salesLoader = SalesLoaderStub(result: .success([]))
         let sut = ProductViewModel(productsLoader: productsLoader, salesLoader: salesLoader)
@@ -80,7 +80,12 @@ final class ProductViewModelTests: XCTestCase {
 
         XCTAssertFalse(sut.sessionExpired)
         XCTAssertEqual(sut.items.count, 0)
-        XCTAssertEqual(sut.error as NSError?, expectedError)
+        XCTAssertNotNil(sut.error)
+        guard let userFacing = sut.error as? UserFacingError else {
+            XCTFail("Expected UserFacingError but got \(String(describing: sut.error))")
+            return
+        }
+        XCTAssertEqual(userFacing, expectedError)
     }
 
     // MARK: - Helpers

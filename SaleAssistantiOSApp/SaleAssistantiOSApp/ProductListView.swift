@@ -12,6 +12,7 @@ struct ProductListView: View {
     @ObservedObject var viewModel: ProductViewModel
     let onSelect: (ProductViewModel.Item) -> Void
     let onSessionExpired: () -> Void
+    @State private var hasPerformedInitialLoad = false
     
     var body: some View {
         Group {
@@ -28,7 +29,7 @@ struct ProductListView: View {
         }
         .navigationTitle("Products")
         .task {
-            await viewModel.load()
+            await performInitialLoadIfNeeded()
         }
         .refreshable {
             await viewModel.load()
@@ -56,6 +57,12 @@ struct ProductListView: View {
             }
             .buttonStyle(.plain)
         }
+    }
+
+    private func performInitialLoadIfNeeded() async {
+        guard !hasPerformedInitialLoad else { return }
+        hasPerformedInitialLoad = true
+        await viewModel.load()
     }
 }
 

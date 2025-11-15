@@ -108,6 +108,6 @@ private struct AccessTokenDTO: Decodable {
     }
     
     var model: AccessToken {
-        AccessToken(value: accessToken, expirationDate: Date().addingTimeInterval(180))
+        AccessToken(value: accessToken, expirationDate: Date().addingTimeInterval(120))
     }
 }

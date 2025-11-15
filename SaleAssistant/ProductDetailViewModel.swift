@@ -28,6 +28,13 @@ public final class ProductDetailViewModel: ObservableObject {
 
     public enum ConversionError: Swift.Error, Equatable {
         case missingRate(currency: String)
+        
+        var message: String {
+            switch self {
+            case .missingRate(currency: let currency):
+                return "No rate available for \(currency)"
+            }
+        }
     }
 
     @Published public private(set) var productName: String
@@ -41,6 +48,7 @@ public final class ProductDetailViewModel: ObservableObject {
     private let product: Product
     private let salesLoader: SalesLoading
     private let ratesLoader: RatesLoading
+    private var pendingReload = false
 
     public init(product: Product,
                 salesLoader: SalesLoading,
@@ -126,7 +134,7 @@ public final class ProductDetailViewModel: ObservableObject {
         if isUnauthorized(error) {
             sessionExpired = true
         }
-        self.error = error
+        self.error = makeUserFacingError(from: error)
     }
 
     private func isUnauthorized(_ error: Swift.Error) -> Bool {
@@ -139,5 +147,21 @@ public final class ProductDetailViewModel: ObservableObject {
         }
 
         return false
+    }
+    
+    private func makeUserFacingError(from error: Swift.Error) -> Error {
+        if let conversionError = error as? ConversionError {
+            return UserFacingError(message: conversionError.message)
+        }
+        
+        if let salesError = error as? SalesService.Error {
+            return UserFacingError(message: salesError.message)
+        }
+
+        if let ratesError = error as? RatesService.Error {
+            return UserFacingError(message: ratesError.message)
+        }
+    
+        return UserFacingError(message: "Something went wrong. Please try again.")
     }
 }

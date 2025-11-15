@@ -13,6 +13,17 @@ public final class RatesService: RatesLoading {
         case connectivity
         case invalidData
         case unauthorized
+        
+        var message : String {
+            switch self {
+            case .connectivity:
+                return "Failed to connect to /rates service. Please check your internet connection and try again."
+            case .invalidData:
+                return "We couldn't process the server response for rate service. Please try again later."
+            case .unauthorized:
+                return "Your session has expired or you don't have access. Please sign in again to continue."
+            }
+        }
     }
 
     private let url: URL

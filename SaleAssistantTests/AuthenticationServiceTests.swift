@@ -55,7 +55,7 @@ final class AuthenticationServiceTests: XCTestCase {
     }
 
     func test_authenticate_deliversAccessTokenOn200ResponseWithValidJSON() async throws {
-        let token = AccessToken(value: "token", expirationDate: Date().addingTimeInterval(180))
+        let token = AccessToken(value: "token", expirationDate: Date().addingTimeInterval(120))
         let (sut, client, _) = makeSUT()
         client.stubAuthenticatedResult(with: makeAccessTokenData(for: token))
 

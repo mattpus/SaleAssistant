@@ -135,6 +135,6 @@ final class LoginViewModelTests: XCTestCase {
     }
 
     private func userFacingErrorMessage(from sut: LoginViewModel) -> String? {
-        (sut.error as? LoginViewModel.UserFacingError)?.message
+        (sut.error as? UserFacingError)?.message
     }
 }
