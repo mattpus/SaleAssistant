@@ -17,7 +17,7 @@ struct LoginView: View {
     
     var body: some View {
         Form {
-            Section(header: Text("Credentials")) {
+            Section {
                 TextField("Username", text: $username)
                     .textContentType(.username)
                     .autocapitalization(.none)

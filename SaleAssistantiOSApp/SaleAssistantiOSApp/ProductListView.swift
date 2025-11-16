@@ -19,10 +19,6 @@ struct ProductListView: View {
             if viewModel.isLoading && viewModel.items.isEmpty {
                 ProgressView("Loading products…")
                     .progressViewStyle(.circular)
-            } else if viewModel.items.isEmpty {
-                ContentUnavailableView("No Products",
-                                       systemImage: "shippingbox",
-                                       description: Text("Products will appear once available."))
             } else {
                 listContent
             }

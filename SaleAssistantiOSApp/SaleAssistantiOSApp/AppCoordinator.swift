@@ -17,6 +17,10 @@ final class AppCoordinator: ObservableObject {
         case products
     }
 
+    enum LogoutReason: Equatable {
+        case sessionExpired
+    }
+
     enum Destination: Hashable {
         case product(ProductViewModel.Item)
     }
@@ -51,8 +55,11 @@ final class AppCoordinator: ObservableObject {
         path = [.product(item)]
     }
 
-    func logout() {
+    func logout(reason: LogoutReason? = nil) {
         dependencies.resetSession()
+        if reason == .sessionExpired {
+            loginViewModel.showSessionExpiredMessage()
+        }
         showLogin()
     }
 
@@ -84,12 +91,12 @@ final class AppCoordinator: ObservableObject {
     private func productListView() -> some View {
         ProductListView(viewModel: productViewModel,
                         onSelect: { [weak self] item in self?.showDetail(for: item) },
-                        onSessionExpired: { [weak self] in self?.logout() })
+                        onSessionExpired: { [weak self] in self?.logout(reason: .sessionExpired) })
     }
 
     private func detailView(for item: ProductViewModel.Item) -> some View {
         ProductDetailView(viewModel: dependencies.makeProductDetailViewModel(for: Product(id: item.id, name: item.name)),
-                          onSessionExpired: { [weak self] in self?.logout() })
+                          onSessionExpired: { [weak self] in self?.logout(reason: .sessionExpired) })
     }
 
     func evaluateStoredTokenIfNeeded() async {

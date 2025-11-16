@@ -76,6 +76,16 @@ final class LoginViewModelTests: XCTestCase {
         XCTAssertFalse(success)
     }
 
+    func test_showSessionExpiredMessage_setsUserFacingError() {
+        let (sut, _, _) = makeSUT()
+
+        sut.showSessionExpiredMessage()
+
+        XCTAssertEqual(userFacingErrorMessage(from: sut), "Your session has expired. Please log in again.")
+        XCTAssertFalse(sut.isLoading)
+        XCTAssertTrue(sut.products.isEmpty)
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(authResult: Result<AccessToken, Swift.Error>? = nil,

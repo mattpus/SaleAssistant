@@ -14,6 +14,10 @@ public final class LoginViewModel: ObservableObject {
     @Published public private(set) var products: [Product] = []
     @Published public private(set) var error: Error?
 
+    private enum Constants {
+        static let sessionExpiredMessage = "Your session has expired. Please log in again."
+    }
+
     private let authenticator: Authenticating
     private let productsLoader: ProductsLoading
 
@@ -39,6 +43,12 @@ public final class LoginViewModel: ObservableObject {
             self.error = makeUserFacingError(from: error)
             return false
         }
+    }
+
+    public func showSessionExpiredMessage() {
+        isLoading = false
+        products = []
+        error = UserFacingError(message: Constants.sessionExpiredMessage)
     }
 
     private func makeUserFacingError(from error: Swift.Error) -> Error {

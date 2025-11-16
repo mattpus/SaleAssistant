@@ -5,14 +5,14 @@ import XCTest
 @MainActor
 final class AppCoordinatorTests: XCTestCase {
     func test_init_startsInIdleRouteWithEmptyPath() async {
-        let (sut, _) = makeSUT()
+        let (sut, _, _) = makeSUT()
 
         XCTAssertEqual(sut.route, .idle)
         XCTAssertTrue(sut.path.isEmpty)
     }
 
     func test_showLogin_setsLoginRouteAndClearsPath() async {
-        let (sut, _) = makeSUT()
+        let (sut, _, _) = makeSUT()
         sut.path = [.product(anyItem())]
 
         sut.showLogin()
@@ -22,7 +22,7 @@ final class AppCoordinatorTests: XCTestCase {
     }
 
     func test_showProducts_setsProductsRouteAndClearsPath() async {
-        let (sut, _) = makeSUT()
+        let (sut, _, _) = makeSUT()
         sut.path = [.product(anyItem())]
 
         sut.showProducts()
@@ -32,7 +32,7 @@ final class AppCoordinatorTests: XCTestCase {
     }
 
     func test_showDetail_switchesToProductsRouteAndPushesDestination() async {
-        let (sut, _) = makeSUT()
+        let (sut, _, _) = makeSUT()
         sut.showLogin()
         let item = anyItem(id: "abc")
 
@@ -43,7 +43,7 @@ final class AppCoordinatorTests: XCTestCase {
     }
 
     func test_logout_resetsSessionAndShowsLogin() async {
-        let (sut, tokenStore) = makeSUT()
+        let (sut, _, tokenStore) = makeSUT()
         sut.showProducts()
 
         sut.logout()
@@ -52,8 +52,18 @@ final class AppCoordinatorTests: XCTestCase {
         XCTAssertEqual(sut.route, .login)
     }
 
+    func test_logoutWithSessionExpiredReason_setsAuthorizationMessageOnLoginViewModel() async {
+        let (sut, dependencies, _) = makeSUT()
+        sut.showProducts()
+
+        sut.logout(reason: .sessionExpired)
+
+        XCTAssertEqual(userFacingErrorMessage(from: dependencies.loginViewModel),
+                       "Your session has expired. Please log in again.")
+    }
+
     func test_evaluateStoredToken_showsProductsWhenTokenIsValid() async {
-        let (sut, _) = makeSUT(hasValidStoredTokenResults: [true])
+        let (sut, _, _) = makeSUT(hasValidStoredTokenResults: [true])
 
         await sut.evaluateStoredTokenIfNeeded()
 
@@ -61,7 +71,7 @@ final class AppCoordinatorTests: XCTestCase {
     }
 
     func test_evaluateStoredToken_showsLoginWhenTokenIsMissing() async {
-        let (sut, _) = makeSUT(hasValidStoredTokenResults: [false])
+        let (sut, _, _) = makeSUT(hasValidStoredTokenResults: [false])
 
         await sut.evaluateStoredTokenIfNeeded()
 
@@ -69,7 +79,7 @@ final class AppCoordinatorTests: XCTestCase {
     }
 
     func test_evaluateStoredToken_runsOnlyOnceUntilReset() async {
-        let (sut, tokenStore) = makeSUT(hasValidStoredTokenResults: [true, false])
+        let (sut, _, tokenStore) = makeSUT(hasValidStoredTokenResults: [true, false])
 
         await sut.evaluateStoredTokenIfNeeded()
         await sut.evaluateStoredTokenIfNeeded()
@@ -79,7 +89,7 @@ final class AppCoordinatorTests: XCTestCase {
     }
 
     func test_showLogin_allowsStoredTokenEvaluationToRunAgain() async {
-        let (sut, tokenStore) = makeSUT(hasValidStoredTokenResults: [true, false])
+        let (sut, _, tokenStore) = makeSUT(hasValidStoredTokenResults: [true, false])
 
         await sut.evaluateStoredTokenIfNeeded()
         sut.showLogin()
@@ -93,13 +103,13 @@ final class AppCoordinatorTests: XCTestCase {
 
     private func makeSUT(hasValidStoredTokenResults: [Bool] = [],
                          file: StaticString = #filePath,
-                         line: UInt = #line) -> (AppCoordinator, TokenStoreStub) {
+                         line: UInt = #line) -> (AppCoordinator, Dependencies, TokenStoreStub) {
         let (dependencies, tokenStore) = makeDependencies(hasValidStoredTokenResults: hasValidStoredTokenResults)
         let sut = AppCoordinator(dependencies: dependencies)
         trackForMemoryLeaks(sut, file: file, line: line)
         trackForMemoryLeaks(dependencies, file: file, line: line)
         trackForMemoryLeaks(tokenStore, file: file, line: line)
-        return (sut, tokenStore)
+        return (sut, dependencies, tokenStore)
     }
 
     private func anyItem(id: String = UUID().uuidString) -> ProductViewModel.Item {
@@ -126,6 +136,10 @@ final class AppCoordinatorTests: XCTestCase {
 
     private func testURL() -> URL {
         URL(string: "https://example.com/\(UUID().uuidString)")!
+    }
+
+    private func userFacingErrorMessage(from viewModel: LoginViewModel) -> String? {
+        (viewModel.error as? UserFacingError)?.message
     }
 }
 
