@@ -81,13 +81,6 @@ struct LoginView: View {
         }
     }
     
-    class PreviewProductsLoader: ProductsLoading {
-        func loadProducts() async throws -> [Product] {
-            [Product(id: UUID().uuidString, name: "Preview Product")]
-        }
-    }
-    
-    return LoginView(viewModel: LoginViewModel(authenticator: PreviewAuthenticator(),
-                                               productsLoader: PreviewProductsLoader()),
+    return LoginView(viewModel: LoginViewModel(authenticator: PreviewAuthenticator()),
                      onSuccess: {})
 }

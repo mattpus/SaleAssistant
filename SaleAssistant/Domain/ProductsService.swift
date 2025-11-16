@@ -40,6 +40,8 @@ public final class ProductsService: ProductsLoading {
 
         do {
             payload = try await client.perform(request: URLRequest(url: url))
+        } catch is TokenService.Error {
+            throw Error.unauthorized
         } catch {
             throw Error.connectivity
         }

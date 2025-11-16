@@ -48,7 +48,6 @@ public final class ProductDetailViewModel: ObservableObject {
     private let product: Product
     private let salesLoader: SalesLoading
     private let ratesLoader: RatesLoading
-    private var pendingReload = false
 
     public init(product: Product,
                 salesLoader: SalesLoading,
@@ -75,9 +74,6 @@ public final class ProductDetailViewModel: ObservableObject {
         isLoading = true
         error = nil
         sessionExpired = false
-        saleItems = []
-        salesCount = 0
-        totalSalesUSD = .zero
 
         defer { isLoading = false }
 

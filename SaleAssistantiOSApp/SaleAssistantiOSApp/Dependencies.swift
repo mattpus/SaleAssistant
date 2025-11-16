@@ -52,8 +52,7 @@ final class Dependencies: ObservableObject {
     }()
 
     lazy var loginViewModel: LoginViewModel = {
-        LoginViewModel(authenticator: authenticationService,
-                       productsLoader: productsService)
+        LoginViewModel(authenticator: authenticationService)
     }()
 
     lazy var productViewModel: ProductViewModel = {

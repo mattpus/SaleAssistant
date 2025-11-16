@@ -34,7 +34,7 @@ final class TokenServiceTests: XCTestCase {
         }
     }
 
-    func test_getToken_propagatesRefreshError() async {
+    func test_getToken_propagatesInvalidTokenError() async {
         let expiredToken = AccessToken(value: "expired", expirationDate: Date().addingTimeInterval(-10))
         let loader = TokenLoaderStub(result: .success(expiredToken))
         let sut = makeSUT(loader: loader)

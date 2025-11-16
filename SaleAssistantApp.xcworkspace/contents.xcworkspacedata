@@ -7,7 +7,4 @@
    <FileRef
       location = "group:SaleAssistantiOSApp/SaleAssistantiOSApp.xcodeproj">
    </FileRef>
-   <FileRef
-      location = "group:../SaleAssistant.xctestplan">
-   </FileRef>
 </Workspace>

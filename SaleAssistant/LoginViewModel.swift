@@ -11,7 +11,6 @@ import Foundation
 @MainActor
 public final class LoginViewModel: ObservableObject {
     @Published public private(set) var isLoading = false
-    @Published public private(set) var products: [Product] = []
     @Published public private(set) var error: Error?
 
     private enum Constants {
@@ -19,11 +18,9 @@ public final class LoginViewModel: ObservableObject {
     }
 
     private let authenticator: Authenticating
-    private let productsLoader: ProductsLoading
 
-    public init(authenticator: Authenticating, productsLoader: ProductsLoading) {
+    public init(authenticator: Authenticating) {
         self.authenticator = authenticator
-        self.productsLoader = productsLoader
     }
 
     @discardableResult
@@ -35,11 +32,8 @@ public final class LoginViewModel: ObservableObject {
 
         do {
             _ = try await authenticator.authenticate(with: Credentials(login: username, password: password))
-            let loadedProducts = try await productsLoader.loadProducts()
-            products = loadedProducts
             return true
         } catch {
-            products = []
             self.error = makeUserFacingError(from: error)
             return false
         }
@@ -47,17 +41,12 @@ public final class LoginViewModel: ObservableObject {
 
     public func showSessionExpiredMessage() {
         isLoading = false
-        products = []
         error = UserFacingError(message: Constants.sessionExpiredMessage)
     }
 
     private func makeUserFacingError(from error: Swift.Error) -> Error {
         if let authError = error as? AuthenticationService.Error {
             return UserFacingError(message: authError.message)
-        }
-
-        if let productsError = error as? ProductsService.Error {
-            return UserFacingError(message: productsError.message)
         }
 
         return UserFacingError(message: "Something went wrong. Please try again.")
