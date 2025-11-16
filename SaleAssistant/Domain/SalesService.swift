@@ -43,10 +43,12 @@ public final class SalesService: SalesLoading {
 
         do {
             payload = try await client.perform(request: URLRequest(url: url))
+        } catch is TokenService.Error {
+            throw Error.unauthorized
         } catch {
             throw Error.connectivity
         }
-
+        
         guard payload.response.statusCode == 200 else {
             if payload.response.statusCode == 401 {
                 throw Error.unauthorized

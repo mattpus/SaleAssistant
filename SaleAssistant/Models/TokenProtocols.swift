@@ -16,3 +16,7 @@ public protocol TokenSaver: AnyObject {
 public protocol TokenLoader: AnyObject {
     func load() async -> Result<AccessToken, Swift.Error>
 }
+
+public protocol TokenStore: TokenSaver, TokenLoader {
+    func clear()
+}

@@ -16,14 +16,13 @@ final class Dependencies: ObservableObject {
     private let salesURL: URL
     private let ratesURL: URL
     private let baseClient: HTTPClient
+    private let tokenStore: TokenStore
 
     private lazy var decoder: JSONDecoder = {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         return decoder
     }()
-
-    private lazy var tokenStore = KeychainTokenStore()
 
     private lazy var authenticationService: AuthenticationService = {
         AuthenticationService(url: authenticationURL,
@@ -63,11 +62,13 @@ final class Dependencies: ObservableObject {
     }()
 
     init(client: HTTPClient = URLSessionHTTPClient(),
+         tokenStore: TokenStore = KeychainTokenStore(),
          authenticationURL: URL = URL(string: "https://ile-b2p4.essentialdeveloper.com/login")!,
          productsURL: URL = URL(string: "https://ile-b2p4.essentialdeveloper.com/products")!,
          salesURL: URL = URL(string: "https://ile-b2p4.essentialdeveloper.com/sales")!,
          ratesURL: URL = URL(string: "https://saleassistant.onrender.com/rates")!) {
         self.baseClient = client
+        self.tokenStore = tokenStore
         self.authenticationURL = authenticationURL
         self.productsURL = productsURL
         self.salesURL = salesURL

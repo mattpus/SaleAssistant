@@ -7,7 +7,7 @@
 
 import Foundation
 
-public final class KeychainTokenStore {
+public final class KeychainTokenStore: TokenStore {
     private struct CodableToken: Codable {
         let value: String
         let expirationDate: Date

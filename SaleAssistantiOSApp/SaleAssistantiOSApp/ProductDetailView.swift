@@ -11,13 +11,31 @@ import SaleAssistant
 struct ProductDetailView: View {
     @ObservedObject var viewModel: ProductDetailViewModel
     let onSessionExpired: () -> Void
+    @State private var showPatienceMessage = false
 
     var body: some View {
         Group {
             if viewModel.isLoading {
-                ProgressView("Loading product details…")
-                    .progressViewStyle(.circular)
-                    .tint(.accentColor)
+                VStack(spacing: 8) {
+                    ProgressView("Loading product details...")
+                        .progressViewStyle(.circular)
+                    if showPatienceMessage {
+                        Text("Please be patient, calculating rates...")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .transition(.opacity)
+                    }
+                }
+                .task(id: viewModel.isLoading) {
+                    // Reset when loading state changes
+                    showPatienceMessage = false
+                    if viewModel.isLoading {
+                        try? await Task.sleep(nanoseconds: 2_000_000_000)
+                        if !Task.isCancelled && viewModel.isLoading {
+                            withAnimation { showPatienceMessage = true }
+                        }
+                    }
+                }
             } else {
                 detailContent
             }
@@ -25,6 +43,11 @@ struct ProductDetailView: View {
         .navigationTitle(viewModel.productName)
         .task {
             await viewModel.load()
+        }
+        .onChange(of: viewModel.isLoading) { _, isLoading in
+            if !isLoading {
+                showPatienceMessage = false
+            }
         }
         .onChange(of: viewModel.sessionExpired) { _, expired in
             if expired {

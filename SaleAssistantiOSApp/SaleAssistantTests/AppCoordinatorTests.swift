@@ -4,15 +4,15 @@ import XCTest
 
 @MainActor
 final class AppCoordinatorTests: XCTestCase {
-    func test_init_startsInIdleRouteWithEmptyPath() {
-        let sut = makeSUT()
+    func test_init_startsInIdleRouteWithEmptyPath() async {
+        let (sut, _) = makeSUT()
 
         XCTAssertEqual(sut.route, .idle)
         XCTAssertTrue(sut.path.isEmpty)
     }
 
-    func test_showLogin_setsLoginRouteAndClearsPath() {
-        let sut = makeSUT()
+    func test_showLogin_setsLoginRouteAndClearsPath() async {
+        let (sut, _) = makeSUT()
         sut.path = [.product(anyItem())]
 
         sut.showLogin()
@@ -21,8 +21,8 @@ final class AppCoordinatorTests: XCTestCase {
         XCTAssertTrue(sut.path.isEmpty)
     }
 
-    func test_showProducts_setsProductsRouteAndClearsPath() {
-        let sut = makeSUT()
+    func test_showProducts_setsProductsRouteAndClearsPath() async {
+        let (sut, _) = makeSUT()
         sut.path = [.product(anyItem())]
 
         sut.showProducts()
@@ -31,8 +31,8 @@ final class AppCoordinatorTests: XCTestCase {
         XCTAssertTrue(sut.path.isEmpty)
     }
 
-    func test_showDetail_switchesToProductsRouteAndPushesDestination() {
-        let sut = makeSUT()
+    func test_showDetail_switchesToProductsRouteAndPushesDestination() async {
+        let (sut, _) = makeSUT()
         sut.showLogin()
         let item = anyItem(id: "abc")
 
@@ -42,7 +42,7 @@ final class AppCoordinatorTests: XCTestCase {
         XCTAssertEqual(sut.path, [.product(item)])
     }
 
-    func test_logout_resetsSessionAndShowsLogin() {
+    func test_logout_resetsSessionAndShowsLogin() async {
         let (sut, tokenStore) = makeSUT()
         sut.showProducts()
 
@@ -94,12 +94,12 @@ final class AppCoordinatorTests: XCTestCase {
     private func makeSUT(hasValidStoredTokenResults: [Bool] = [],
                          file: StaticString = #filePath,
                          line: UInt = #line) -> (AppCoordinator, TokenStoreStub) {
-        let builder = makeDependencies(hasValidStoredTokenResults: hasValidStoredTokenResults)
-        let sut = AppCoordinator(dependencies: builder.dependencies)
+        let (dependencies, tokenStore) = makeDependencies(hasValidStoredTokenResults: hasValidStoredTokenResults)
+        let sut = AppCoordinator(dependencies: dependencies)
         trackForMemoryLeaks(sut, file: file, line: line)
-        trackForMemoryLeaks(builder.dependencies, file: file, line: line)
-        trackForMemoryLeaks(builder.tokenStore, file: file, line: line)
-        return (sut, builder.tokenStore)
+        trackForMemoryLeaks(dependencies, file: file, line: line)
+        trackForMemoryLeaks(tokenStore, file: file, line: line)
+        return (sut, tokenStore)
     }
 
     private func anyItem(id: String = UUID().uuidString) -> ProductViewModel.Item {
@@ -169,6 +169,7 @@ private func makeTestURL() -> URL {
 
 // MARK: - Leak tracking
 
+@MainActor
 private extension XCTestCase {
     func trackForMemoryLeaks(_ instance: AnyObject,
                              file: StaticString = #filePath,
