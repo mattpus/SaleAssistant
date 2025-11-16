@@ -43,7 +43,8 @@ Show the product name, the number of sales for that product, and the sum of all 
   - `SaleAssistantiOSAppTests`: UI-independent tests for the coordinator layer.
   - `backend/internal/.../*_test.go`: Go unit tests for the rates service.
  
-  <img width="1159" height="1087" alt="Screenshot 2025-11-10 at 11 18 31" src="https://github.com/user-attachments/assets/8ba9f8e9-05da-45ef-a70c-b5427904bb12" />
+<img width="888" height="1065" alt="Screenshot 2025-11-16 at 19 53 40" src="https://github.com/user-attachments/assets/a854ebca-f9c8-4a21-af86-355086d9aa7e" />
+
 
 
 ```
@@ -95,14 +96,15 @@ Environment overrides:
 4. Use login **tester** and password **password** for testing.
 
 ## How It Works
-- `LoginViewModel` authenticates via `AuthenticationService` (POST `/login`), stores tokens in `KeychainTokenStore`, and preloads products upon success.
+- `LoginViewModel` authenticates via `AuthenticationService` (POST `/login`) and stores tokens in `KeychainTokenStore`.
 - `ProductViewModel` uses the authenticated products and sales services to compute per-product sales counts, handling session expiry and unauthorized errors.
 - `ProductDetailViewModel` filters sales for a selected product and pairs them with USD totals using the locally served conversion rates.
 - `AppCoordinator` orchestrates navigation among loading, login, product list, and detail flows, and evaluates stored tokens lazily on launch.
 - `Dependencies` wires everything together, ensuring the `RatesService` points to the local middleware (so keep the Go server running).
 
 ## Troubleshooting
-- **Rates errors / missing totals:** The app uses the cloud-deployed middleware at `https://saleassistant.onrender.com/rates`. If you see connectivity issues, check your internet connection or try running the local middleware for development.
+- **Rates errors / missing totals:** The app uses the cloud-deployed middleware at `https://saleassistant.onrender.com/rates`. The first inital call take longer because the server needs to boot after long break from use.
+  If you see connectivity issues, check your internet connection or try running the local middleware for development.
 - **Auth failures:** The public Essential Developer endpoints require valid demo credentials; double-check username/password.
 - **Simulator build issues:** Clean derived data (`Shift+⌘+K`) and confirm the destination matches your installed SDKs.
 - **Local development:** For local backend development, override `LISTEN_ADDR` (e.g., `LISTEN_ADDR=":9090" go run ./cmd/server`) and update `ratesURL` in `Dependencies` to point to your local instance.
